@@ -1,0 +1,7 @@
+data/raw/demand/
+data/staging/
+data/curated/
+
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
