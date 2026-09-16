@@ -86,10 +86,21 @@ def blackout_window(frame: pl.DataFrame) -> pl.DataFrame:
     above the 5,000 MW floor used in the Milestone 1 checks - low enough to
     distort a profile, high enough to pass unnoticed.
 
-    Method: express each day as a fraction of its own year's mean, which removes
-    the long-run level trend, then compare 2003 against the median of the same
-    calendar date in neighbouring years. Days more than 10% below that
-    expectation are reported.
+    The expectation each day is compared against has two factors, both estimated
+    from July-September of the neighbouring years 2002 and 2004-2006:
+
+    * a day-of-week factor, because weekend demand runs roughly 8-10% below a
+      weekday;
+    * a calendar-date factor, for where in the summer the day sits.
+
+    Both are needed. An earlier version matched only on calendar date, which is
+    wrong because the same date falls on a different weekday each year: a 2003
+    Saturday was being measured against weekdays in the reference years and came
+    out looking 15% suppressed on that alone. That produced false positives on
+    2003-08-23 and 08-24, a fortnight clear of the event.
+
+    Each day is first expressed as a fraction of its own year's mean, which
+    removes the long-run level trend.
 
     LIMITATION, and it is not a small one: with no weather data in v1, this
     cannot separate conservation from a cool spell. The window is therefore
@@ -104,10 +115,24 @@ def blackout_window(frame: pl.DataFrame) -> pl.DataFrame:
         pl.col("local_date").dt.strftime("%m-%d").alias("md"),
     )
 
-    reference = (
-        normalised.filter(pl.col("year").is_in(BLACKOUT_REFERENCE_YEARS))
+    # Reference pool: the same part of the calendar, in years without the event.
+    pool = normalised.filter(
+        pl.col("year").is_in(BLACKOUT_REFERENCE_YEARS) & pl.col("month").is_in([7, 8, 9])
+    )
+
+    baseline = pool["rel"].median()
+    weekday_factor = (
+        pool.group_by("weekday")
+        .agg((pl.col("rel").median() / baseline).alias("weekday_factor"))
+    )
+
+    # Strip the weekday effect before averaging across years by calendar date,
+    # otherwise the date factor absorbs whichever weekdays happened to land there.
+    date_factor = (
+        pool.join(weekday_factor, on="weekday")
+        .with_columns((pl.col("rel") / pl.col("weekday_factor")).alias("adjusted"))
         .group_by("md")
-        .agg(pl.col("rel").median().alias("rel_expected"))
+        .agg(pl.col("adjusted").median().alias("date_factor"))
     )
 
     subject = normalised.filter(
@@ -116,17 +141,20 @@ def blackout_window(frame: pl.DataFrame) -> pl.DataFrame:
     )
 
     return (
-        subject.join(reference, on="md", how="left")
+        subject.join(date_factor, on="md", how="left")
+        .join(weekday_factor, on="weekday", how="left")
         .with_columns(
-            (1 - pl.col("rel") / pl.col("rel_expected")).alias("deficit"),
+            (pl.col("date_factor") * pl.col("weekday_factor")).alias("rel_expected")
         )
-        .with_columns(
-            (pl.col("deficit") > BLACKOUT_DEFICIT_THRESHOLD).alias("suppressed"),
-        )
+        .with_columns((1 - pl.col("rel") / pl.col("rel_expected")).alias("deficit"))
+        .with_columns((pl.col("deficit") > BLACKOUT_DEFICIT_THRESHOLD).alias("suppressed"))
         .select(
             "local_date", "weekday", "mean_mw",
-            pl.col("rel").round(4), pl.col("rel_expected").round(4),
-            pl.col("deficit").round(4), "suppressed",
+            pl.col("rel").round(4),
+            pl.col("weekday_factor").round(4),
+            pl.col("rel_expected").round(4),
+            pl.col("deficit").round(4),
+            "suppressed",
         )
         .sort("local_date")
     )
