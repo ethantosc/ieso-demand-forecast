@@ -1,0 +1,761 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://reports-public.ieso.ca/docrefs/stylesheet/DATotals_HTML_t1-1.xsl" ?>
+<Document docID="DATotals" xmlns="http://www.ieso.ca/schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ieso.ca/schema https://reports-public.ieso.ca/docrefs/schema/DATotals_r1.xsd">
+<DocHeader>
+<DocTitle>Day-Ahead Totals Report</DocTitle>
+<DocRevision>1</DocRevision>
+<DocConfidentiality>
+<DocConfClass>PUB</DocConfClass>
+</DocConfidentiality>
+<CreatedAt>2026-09-20T12:31:46</CreatedAt>
+</DocHeader>
+<DocBody>
+<DeliveryDate>2026-09-21</DeliveryDate>
+<Energies>
+<HourlyEnergy>
+<DeliveryHour>1</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>16479.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>284.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>16195.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>1121.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>1112</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>70</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>2</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>16562.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>297.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>16264.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>1404.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>1112</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>70</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>3</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>16696.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>296.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>16399.9</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>1422.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>1112</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>70</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>4</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>16780.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>298.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>16481.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>1424</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>1112</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>70</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>5</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>16848.3</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>295.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>16553.3</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>937.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>1112</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>70</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>6</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>18226.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>306.3</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>17919.9</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>1323.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>1112</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>70</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>7</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>19148.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>333.3</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>18815.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>1045.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>1172</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>10</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>8</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>19055.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>330.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>18725.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>964.9</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>337.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>987.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>93.8</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>9</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>18583.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>359.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>18223.9</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>794.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>481.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>866.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>70</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>10</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>18389.9</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>357.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>18032.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>477.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>348.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>915.9</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>153.4</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>11</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>18520.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>347.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>18173.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>419.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>348</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>783.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>286.4</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>12</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>18588.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>354.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>18234.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>398.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>356.3</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>771.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>290.5</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>13</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>18941.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>345.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>18596.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>393.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>523.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>650.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>244.4</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>14</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>18959.9</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>342.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>18617.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>393.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>533.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>594.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>289.6</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>15</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>19204.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>347.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>18856.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>393.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>325.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>704.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>388</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>16</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>19839.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>352.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>19487.3</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>325.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>373.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>633.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>410.6</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>17</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>20487</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>354.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>20132.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>302.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>318.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>638.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>461</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>18</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>20871.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>363.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>20508.3</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>328.9</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>308.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>648.3</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>461</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>19</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>20932</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>371.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>20560.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>368.9</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>721</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>461</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>20</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>20351</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>354.9</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>19996.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>342.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>715.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>466.5</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>21</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>19388.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>329</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>19059.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>379.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>305.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>787.4</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>325.6</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>22</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>18444</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>320</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>18124</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>619.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>957.7</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>224.3</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>23</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>17696.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>302.1</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>17394.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>670.5</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>1112</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>70</EnergyMW>
+</MQ>
+</HourlyEnergy>
+<HourlyEnergy>
+<DeliveryHour>24</DeliveryHour>
+<MQ>
+<MarketQuantity>Total Energy</MarketQuantity>
+<EnergyMW>16583.8</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Loss</MarketQuantity>
+<EnergyMW>290.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Load</MarketQuantity>
+<EnergyMW>16293.2</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total Dispatch Load</MarketQuantity>
+<EnergyMW>860.6</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10S</MarketQuantity>
+<EnergyMW>236</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 10N</MarketQuantity>
+<EnergyMW>1112</EnergyMW>
+</MQ>
+<MQ>
+<MarketQuantity>Total 30R</MarketQuantity>
+<EnergyMW>70</EnergyMW>
+</MQ>
+</HourlyEnergy>
+</Energies>
+</DocBody>
+</Document>
