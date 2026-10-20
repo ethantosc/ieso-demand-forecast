@@ -36,6 +36,7 @@ import polars as pl
 from src.transform.features import CUTOFF_HOUR_EST
 
 CLASSICAL_WINDOW_HOURS = 8 * 7 * 24
+CHUNK_DAYS = 100
 STEPS_TO_END_OF_DAY = (24 - CUTOFF_HOUR_EST) + 24   # from the last known hour to 23:00 on D
 
 
@@ -83,6 +84,16 @@ def classical(frame: pl.DataFrame, days: list[date], n_jobs: int = -1,
     """MSTL+ETS and MSTL+ARIMA forecasts for every day, refitted at every origin."""
     from statsforecast import StatsForecast
     from statsforecast.models import MSTL, AutoARIMA, AutoETS
+
+    if len(days) > CHUNK_DAYS:
+        # Fit in chunks so a long window reports progress. Each origin is its own
+        # series and is fitted independently, so chunking changes no forecast.
+        parts: dict[str, list[pl.DataFrame]] = {}
+        for start in range(0, len(days), CHUNK_DAYS):
+            for name, out in classical(frame, days[start:start + CHUNK_DAYS], n_jobs, window).items():
+                parts.setdefault(name, []).append(out)
+            print(f"  classical models {min(start + CHUNK_DAYS, len(days))}/{len(days)} days", flush=True)
+        return {name: pl.concat(outs) for name, outs in parts.items()}
 
     panel = _panel(frame, days, window)
     if panel.empty:

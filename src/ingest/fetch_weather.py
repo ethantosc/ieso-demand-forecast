@@ -126,9 +126,11 @@ def fetch(today: date | None = None) -> dict[str, int]:
         return {"cached": cached, "unreachable": 1}
     counts: dict[str, int] = {}
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        for status in pool.map(_download, jobs):
+        for i, status in enumerate(pool.map(_download, jobs), start=1):
             key = status.split(":")[0]
             counts[key] = counts.get(key, 0) + 1
+            if i % 100 == 0 or i == len(jobs):
+                print(f"  weather files {i}/{len(jobs)}", flush=True)
     return counts
 
 
