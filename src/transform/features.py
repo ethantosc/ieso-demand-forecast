@@ -61,11 +61,27 @@ RELATIVE_FEATURES = [
 WEATHER_FEATURES = ["temp", "hdd", "cdd", "temp_day_mean", "temp_day_max", "temp_day_min",
                     "temp_delta_168", "temp_day_mean_delta_7d"]
 
+# What is being forecast. Market Demand is the v1 target (spec section 1);
+# Ontario Demand and exports exist for the v2 export decomposition (spec-v2
+# section 5). Exports can be zero or negative, which is why every ratio
+# feature below is only defined when its denominator is positive - for the two
+# demand series that is always true, so their features are unchanged.
+TARGETS = {
+    "market": pl.col("market_demand_mw"),
+    "ontario": pl.col("ontario_demand_mw"),
+    "exports": pl.col("market_demand_mw") - pl.col("ontario_demand_mw"),
+}
+
+
+def _ratio(numerator: pl.Expr, denominator: pl.Expr) -> pl.Expr:
+    return pl.when(denominator > 0).then(numerator / denominator).otherwise(None)
+
 
 # ------------------------------------------------------------------ grid
 
 
-def hourly_grid(staging: pl.DataFrame, excluded_local_dates: list[date] = ()) -> pl.DataFrame:
+def hourly_grid(staging: pl.DataFrame, excluded_local_dates: list[date] = (),
+                target: str = "market") -> pl.DataFrame:
     """A complete EST hourly grid, so that shifting by k rows is shifting by k hours.
 
     Missing hours (2025-05-01 00:00 EST) become rows with a null target rather
@@ -75,7 +91,7 @@ def hourly_grid(staging: pl.DataFrame, excluded_local_dates: list[date] = ()) ->
     """
     frame = staging.select(
         (pl.col("ts_utc") - pl.duration(hours=5)).alias("ts_est"),
-        pl.col("market_demand_mw").alias("y_raw"),
+        TARGETS[target].alias("y_raw"),
         "local_date",
     )
     full = pl.DataFrame({
@@ -162,10 +178,10 @@ def lag_features(grid: pl.DataFrame) -> pl.DataFrame:
         .select(
             (pl.col("delivery_date") + pl.duration(days=1)).cast(pl.Date).alias("delivery_date"),
             pl.col("y").alias("origin_last_obs"),
-            (pl.col("y") / pl.col("_y_wk")).alias("rel_origin_last_wow"),
+            _ratio(pl.col("y"), pl.col("_y_wk")).alias("rel_origin_last_wow"),
             pl.col("_r24").alias("origin_mean_24h"),
             pl.col("_r168").alias("origin_mean_168h"),
-            (pl.col("_rpart") / pl.col("_rpart_wk")).alias("origin_wow_ratio"),
+            _ratio(pl.col("_rpart"), pl.col("_rpart_wk")).alias("origin_wow_ratio"),
         )
     )
     return (
@@ -175,7 +191,7 @@ def lag_features(grid: pl.DataFrame) -> pl.DataFrame:
             (pl.col("lag24_if_known") - pl.col("lag168")).alias("rel_d24"),
             (pl.col("lag48") - pl.col("lag168")).alias("rel_d48"),
             (pl.col("lag168") - pl.col("lag336")).alias("rel_d336"),
-            (pl.col("origin_mean_24h") / pl.col("origin_mean_168h")).alias("rel_origin_24_168"),
+            _ratio(pl.col("origin_mean_24h"), pl.col("origin_mean_168h")).alias("rel_origin_24_168"),
         )
         .sort("ts_est")
     )
@@ -227,9 +243,14 @@ def weather_features(frame: pl.DataFrame, weather: pl.DataFrame | None) -> pl.Da
 
 
 def build(staging: pl.DataFrame, excluded_local_dates: list[date] = (),
-          weather: pl.DataFrame | None = None) -> pl.DataFrame:
-    """One row per EST hour with target, calendar, lag and (optional) weather columns."""
-    grid = hourly_grid(staging, excluded_local_dates)
+          weather: pl.DataFrame | None = None, target: str = "market") -> pl.DataFrame:
+    """One row per EST hour with target, calendar, lag and (optional) weather columns.
+
+    `weather` may be observed temperature (Track B, an upper bound) or archived
+    forecasts made legal for the origin (Track C); the feature names are the
+    same either way, so which one a model saw is decided by which frame it gets.
+    """
+    grid = hourly_grid(staging, excluded_local_dates, target)
     frame = lag_features(grid).join(
         calendar(grid).drop("y", "y_raw"), on="ts_est", how="left"
     ).with_columns(pl.col("delivery_date").cast(pl.Date))

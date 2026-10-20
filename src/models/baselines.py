@@ -80,8 +80,13 @@ def _panel(frame: pl.DataFrame, days: list[date], window: int) -> pd.DataFrame:
 
 
 def classical(frame: pl.DataFrame, days: list[date], n_jobs: int = -1,
-              window: int = CLASSICAL_WINDOW_HOURS) -> dict[str, pl.DataFrame]:
-    """MSTL+ETS and MSTL+ARIMA forecasts for every day, refitted at every origin."""
+              window: int = CLASSICAL_WINDOW_HOURS,
+              which: tuple[str, ...] = ("mstl_ets", "mstl_arima")) -> dict[str, pl.DataFrame]:
+    """MSTL+ETS and/or MSTL+ARIMA forecasts for every day, refitted at every origin.
+
+    The two are independent models fitted side by side, so asking for one gives
+    exactly the forecasts it would have had alongside the other.
+    """
     from statsforecast import StatsForecast
     from statsforecast.models import MSTL, AutoARIMA, AutoETS
 
@@ -90,7 +95,7 @@ def classical(frame: pl.DataFrame, days: list[date], n_jobs: int = -1,
         # series and is fitted independently, so chunking changes no forecast.
         parts: dict[str, list[pl.DataFrame]] = {}
         for start in range(0, len(days), CHUNK_DAYS):
-            for name, out in classical(frame, days[start:start + CHUNK_DAYS], n_jobs, window).items():
+            for name, out in classical(frame, days[start:start + CHUNK_DAYS], n_jobs, window, which).items():
                 parts.setdefault(name, []).append(out)
             print(f"  classical models {min(start + CHUNK_DAYS, len(days))}/{len(days)} days", flush=True)
         return {name: pl.concat(outs) for name, outs in parts.items()}
@@ -98,10 +103,11 @@ def classical(frame: pl.DataFrame, days: list[date], n_jobs: int = -1,
     panel = _panel(frame, days, window)
     if panel.empty:
         return {}
-    models = [
-        MSTL(season_length=[24, 168], trend_forecaster=AutoETS(model="ZZN"), alias="mstl_ets"),
-        MSTL(season_length=[24, 168], trend_forecaster=AutoARIMA(), alias="mstl_arima"),
-    ]
+    available = {
+        "mstl_ets": lambda: MSTL(season_length=[24, 168], trend_forecaster=AutoETS(model="ZZN"), alias="mstl_ets"),
+        "mstl_arima": lambda: MSTL(season_length=[24, 168], trend_forecaster=AutoARIMA(), alias="mstl_arima"),
+    }
+    models = [available[name]() for name in which]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         out = StatsForecast(models=models, freq="h", n_jobs=n_jobs).forecast(df=panel, h=STEPS_TO_END_OF_DAY)
@@ -110,4 +116,4 @@ def classical(frame: pl.DataFrame, days: list[date], n_jobs: int = -1,
         pl.col("unique_id").cast(pl.Utf8).str.strptime(pl.Date, "%Y-%m-%d").alias("delivery_date"),
         pl.col("ds").cast(frame.schema["ts_est"]).alias("ts_est"),
     ).filter(pl.col("ts_est").dt.date() == pl.col("delivery_date"))
-    return {name: out.select("ts_est", pl.col(name).alias("yhat")) for name in ("mstl_ets", "mstl_arima")}
+    return {name: out.select("ts_est", pl.col(name).alias("yhat")) for name in which}

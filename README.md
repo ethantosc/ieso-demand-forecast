@@ -18,6 +18,7 @@ statsforecast, LightGBM). The plan is in [`docs/spec.md`](docs/spec.md).
 | Milestone 2 - EDA | done - [`reports/findings.md`](reports/findings.md) §3 |
 | Milestones 3-7 - backtest, ladder, LightGBM A and B, official comparison | done - run of 2026-10-20 |
 | Milestone 8 - write-up | done - [`reports/findings.md`](reports/findings.md) |
+| **v2** - weather forecasts, ensembles, exports, probabilistic | pre-registered in [`docs/spec-v2.md`](docs/spec-v2.md); built and tested; **awaiting the first real run** |
 
 ## The problem
 
@@ -33,6 +34,7 @@ on it (spec §1).
 | IESO `PUB_Demand_{year}.csv` | hourly Market and Ontario demand, 2002-05-01 onward, fixed EST | downloaded, not in git |
 | IESO `DATotals` | IESO's day-ahead forecast, kept by IESO for only a few months | harvested daily into `data/raw/forecasts/`, **in git** |
 | Environment Canada hourly climate | temperature, Toronto, Ottawa, London airports | downloaded, Track B only |
+| Open-Meteo Previous Runs API (v2) | archived NCEP GFS temperature forecasts, same three airports, from 2021 | downloaded, Track C only |
 
 Quirks that matter, all documented in `data_quality.md`: the files are fixed EST,
 not wall-clock time (tested three independent ways); one hour is missing
@@ -98,6 +100,7 @@ In Google Colab, no local install needed. Open each notebook from GitHub
 | `notebooks/00_ingest_colab.ipynb` | download IESO demand, build and validate the Parquet | ~2 min |
 | `notebooks/01_eda.ipynb` | Milestone 2 analysis | ~3 min |
 | `notebooks/02_results.ipynb` | tests, full backtest, official comparison, report | ~35 min |
+| `notebooks/03_v2.ipynb` | v2: forecast-weather verification, holdout, ensembles, exports, quantiles | ~60-80 min |
 
 Locally, with Python 3.12+ and `pip install -r requirements.txt`:
 
@@ -117,9 +120,16 @@ src/transform/features.py       origin-aware features - the leakage boundary
 src/models/                     baselines.py (rungs 1-4), lgbm.py (rung 5, tracks A/B)
 src/evaluate/                   run.py (orchestrator), metrics.py, plots.py
 src/analysis/eda.py             Milestone 2 computations
-tests/                          leakage guard, parsers
+tests/                          leakage guards (features, quantile baseline, forecast rule), parsers
 notebooks/                      Colab drivers - no logic lives here
 reports/                        data_quality, findings, and machine-written outputs
 docs/spec.md                    the plan, v1.1
+docs/spec-v2.md                 the v2 plan, written before any v2 model code
 data/raw/forecasts/             the harvested IESO forecast archive (tracked)
 ```
+
+## Data credits
+
+Demand and day-ahead forecasts: IESO public reports. Observed weather: Environment and
+Climate Change Canada. Weather forecasts (v2): [Open-Meteo](https://open-meteo.com/),
+licensed CC BY 4.0, NCEP GFS model data.

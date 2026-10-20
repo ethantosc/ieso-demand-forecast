@@ -56,8 +56,11 @@ NUM_ROUNDS = 600
 
 
 def feature_set(track: str) -> list[str]:
+    """A: calendar and lags. B and C add the weather features - observed for B,
+    legal archived forecasts for C. Which weather a model sees is decided by the
+    frame it is given, not by the column names, which are the same."""
     base = CALENDAR_FEATURES + RELATIVE_FEATURES
-    return base + WEATHER_FEATURES if track == "B" else base
+    return base + WEATHER_FEATURES if track in ("B", "C") else base
 
 
 def _shift_years(day: date, years: int) -> date:
@@ -67,36 +70,65 @@ def _shift_years(day: date, years: int) -> date:
         return day.replace(year=day.year - years, day=28)
 
 
-def forecast(frame: pl.DataFrame, days: list[date], track: str, window: str,
-             n_jobs: int = -1) -> tuple[pl.DataFrame, pl.DataFrame]:
-    """Returns (predictions: ts_est, yhat) and (gain importance from the last refit)."""
-    import lightgbm as lgb
+def _training_start(refit: date, window: str, train_start: date | None) -> date:
+    if window == "rolling_3y":
+        return _shift_years(refit, 3)
+    if window == "since":
+        if train_start is None:
+            raise ValueError("window='since' needs train_start")
+        return train_start
+    return EXPANDING_START
 
-    cols = feature_set(track)
+
+def _monthly_fits(frame: pl.DataFrame, days: list[date], track: str, window: str,
+                  train_start: date | None, min_train_days: int):
+    """Yield (month_days, training rows, target rows) for each monthly refit.
+
+    Training rows are target days up to two days before the month starts: the
+    last days fully known at the month's first origin.
+    """
     by_month: dict[tuple[int, int], list[date]] = {}
     for day in sorted(days):
         by_month.setdefault((day.year, day.month), []).append(day)
-
-    preds, importance = [], None
     for month_days in by_month.values():
         refit = month_days[0]
-        train_end = refit - timedelta(days=2)
-        train_start = _shift_years(refit, 3) if window == "rolling_3y" else EXPANDING_START
         train = frame.filter(
-            pl.col("delivery_date").is_between(train_start, train_end)
+            pl.col("delivery_date").is_between(_training_start(refit, window, train_start),
+                                               refit - timedelta(days=2))
             & pl.col("y").is_not_null() & pl.col("lag168").is_not_null()
         )
-        if track == "B":
+        if track in ("B", "C"):
             train = train.filter(pl.col("temp").is_not_null())
-        if train.height < 24 * 60:
+        if train.height < 24 * min_train_days:
             continue
-        model = lgb.train(
-            {**PARAMS, "num_threads": n_jobs if n_jobs > 0 else 0},
-            lgb.Dataset(train.select(cols).to_numpy(), label=(train["y"] - train["lag168"]).to_numpy(),
-                        feature_name=cols),
-            num_boost_round=NUM_ROUNDS,
-        )
-        target = frame.filter(pl.col("delivery_date").is_in(month_days))
+        yield month_days, train, frame.filter(pl.col("delivery_date").is_in(month_days))
+
+
+def _train(train: pl.DataFrame, cols: list[str], n_jobs: int, quantile: float | None = None):
+    import lightgbm as lgb
+
+    params = {**PARAMS, "num_threads": n_jobs if n_jobs > 0 else 0}
+    if quantile is not None:
+        params.update(objective="quantile", alpha=quantile)
+    return lgb.train(
+        params,
+        lgb.Dataset(train.select(cols).to_numpy(), label=(train["y"] - train["lag168"]).to_numpy(),
+                    feature_name=cols),
+        num_boost_round=NUM_ROUNDS,
+    )
+
+
+def forecast(frame: pl.DataFrame, days: list[date], track: str, window: str,
+             n_jobs: int = -1, *, train_start: date | None = None,
+             min_train_days: int = 60) -> tuple[pl.DataFrame, pl.DataFrame]:
+    """Returns (predictions: ts_est, yhat) and (gain importance from the last refit).
+
+    window: "rolling_3y", "expanding" (from 2003), or "since" (from train_start).
+    """
+    cols = feature_set(track)
+    preds, importance = [], None
+    for _, train, target in _monthly_fits(frame, days, track, window, train_start, min_train_days):
+        model = _train(train, cols, n_jobs)
         change = pl.Series("change", model.predict(target.select(cols).to_numpy()))
         preds.append(target.select("ts_est", "lag168").with_columns(change)
                      .select("ts_est", (pl.col("lag168") + pl.col("change")).alias("yhat")))
@@ -105,3 +137,29 @@ def forecast(frame: pl.DataFrame, days: list[date], track: str, window: str,
         return pl.DataFrame(schema={"ts_est": frame.schema["ts_est"], "yhat": pl.Float64}), pl.DataFrame()
     gain = importance.with_columns((pl.col("gain") / pl.col("gain").sum() * 100).round(1).alias("gain_pct"))
     return pl.concat(preds), gain.sort("gain_pct", descending=True).select("feature", "gain_pct")
+
+
+def forecast_quantiles(frame: pl.DataFrame, days: list[date], track: str, window: str,
+                       quantiles: tuple[float, ...], n_jobs: int = -1, *,
+                       train_start: date | None = None, min_train_days: int = 60) -> pl.DataFrame:
+    """One quantile model per q at every monthly refit. Returns ts_est, q, yhat.
+
+    Separately fitted quantiles can cross (q05 above q25 for some hour). They are
+    sorted within each hour, which keeps each hour's set of values and only
+    reassigns them to quantile levels in order.
+    """
+    cols = feature_set(track)
+    parts = []
+    for _, train, target in _monthly_fits(frame, days, track, window, train_start, min_train_days):
+        x = target.select(cols).to_numpy()
+        base = target.select("ts_est", "lag168")
+        for q in quantiles:
+            change = _train(train, cols, n_jobs, quantile=q).predict(x)
+            parts.append(base.with_columns(pl.Series("change", change), pl.lit(q).alias("q"))
+                         .select("ts_est", "q", (pl.col("lag168") + pl.col("change")).alias("yhat")))
+    if not parts:
+        return pl.DataFrame(schema={"ts_est": frame.schema["ts_est"], "q": pl.Float64, "yhat": pl.Float64})
+    long = pl.concat(parts)
+    ordered = (long.sort("ts_est", "q")
+               .with_columns(pl.col("yhat").sort().over("ts_est").alias("yhat")))
+    return ordered

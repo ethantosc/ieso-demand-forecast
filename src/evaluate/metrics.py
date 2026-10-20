@@ -91,3 +91,54 @@ def diebold_mariano(pred: pl.DataFrame, model: str, benchmark: str) -> dict:
     p = math.erfc(abs(stat) / math.sqrt(2)) if stat == stat else float("nan")
     return {"model": model, "benchmark": benchmark, "n_days": n, "mean_diff": round(mean, 1),
             "dm_stat": round(stat, 2), "p_value": float(f"{p:.2g}") if p == p else None}
+
+
+# ------------------------------------------------------------ v2 additions
+
+
+def holm(p_values: list[float | None]) -> list[float | None]:
+    """Holm-Bonferroni adjusted p-values for one pre-declared family of tests.
+
+    Missing p-values (a test that could not run) are not counted in the family.
+    """
+    present = sorted((p, i) for i, p in enumerate(p_values) if p is not None and p == p)
+    m = len(present)
+    adjusted: list[float | None] = [None] * len(p_values)
+    running = 0.0
+    for rank, (p, i) in enumerate(present):
+        running = max(running, min(1.0, (m - rank) * p))
+        adjusted[i] = running
+    return adjusted
+
+
+def _pinball_expr() -> pl.Expr:
+    diff = pl.col("y") - pl.col("yhat")
+    return pl.when(diff >= 0).then(pl.col("q") * diff).otherwise((pl.col("q") - 1) * diff)
+
+
+def quantile_summary(qpred: pl.DataFrame) -> pl.DataFrame:
+    """Per model: mean pinball loss, interval coverage and width.
+
+    `qpred` is long: ts_est, model, q, yhat, y. Coverage counts an hour inside
+    the interval when q05 <= y <= q95 (90%) or q25 <= y <= q75 (50%).
+    """
+    q = qpred.filter(pl.col("y").is_not_null() & pl.col("yhat").is_not_null())
+    loss = q.with_columns(_pinball_expr().alias("pinball")).group_by("model").agg(
+        pl.col("pinball").mean().round(1).alias("mean_pinball"))
+    wide = q.pivot(on="q", index=["model", "ts_est", "y"], values="yhat")
+    cols = {float(c): c for c in wide.columns if c not in ("model", "ts_est", "y")}
+    lo90, hi90, lo50, hi50 = (cols.get(0.05), cols.get(0.95), cols.get(0.25), cols.get(0.75))
+    stats = wide.group_by("model").agg(
+        pl.len().alias("n_hours"),
+        ((pl.col("y") >= pl.col(lo90)) & (pl.col("y") <= pl.col(hi90))).mean().mul(100).round(1).alias("coverage_90_pct"),
+        ((pl.col("y") >= pl.col(lo50)) & (pl.col("y") <= pl.col(hi50))).mean().mul(100).round(1).alias("coverage_50_pct"),
+        (pl.col(hi90) - pl.col(lo90)).mean().round(0).alias("width_90_mw"),
+    )
+    return stats.join(loss, on="model").sort("mean_pinball")
+
+
+def reliability(qpred: pl.DataFrame) -> pl.DataFrame:
+    """Share of actuals below each quantile forecast - ideally equal to q."""
+    q = qpred.filter(pl.col("y").is_not_null() & pl.col("yhat").is_not_null())
+    return (q.group_by("model", "q").agg((pl.col("y") < pl.col("yhat")).mean().mul(100).round(1).alias("pct_below"))
+            .with_columns((pl.col("q") * 100).alias("nominal_pct")).sort("model", "q"))

@@ -1,5 +1,6 @@
 data/raw/demand/
 data/raw/weather/
+data/raw/weather_fc/
 data/staging/
 data/curated/
 

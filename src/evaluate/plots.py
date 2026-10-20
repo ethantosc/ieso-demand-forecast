@@ -37,13 +37,14 @@ def _save(fig, path: Path) -> Path:
 
 
 def ladder(summary: pl.DataFrame, labels: dict[str, str], highlight: str | None,
-           threshold: float | None, path: Path, title: str) -> Path:
+           threshold: float | None, path: Path, title: str,
+           threshold_label: str = "seasonal-naive threshold") -> Path:
     """Horizontal bars, one per model, sorted by MAE. Only the best Track A model is coloured."""
     rows = summary.sort("MAE", descending=True)
     fig, ax = plt.subplots(figsize=(9, 0.45 * rows.height + 1.4))
     names = [labels.get(m, m) for m in rows["model"]]
     colours = [SERIES[0] if m == highlight else CONTEXT for m in rows["model"]]
-    hatch = ["//" if m.startswith("lgbm_B") else "" for m in rows["model"]]
+    hatch = ["//" if m.startswith("lgbm_B") or m.startswith("q_") else "" for m in rows["model"]]
     bars = ax.barh(names, rows["MAE"], color=colours, height=0.62, edgecolor=SURFACE, linewidth=2)
     for bar, h in zip(bars, hatch):
         bar.set_hatch(h)
@@ -51,7 +52,7 @@ def ladder(summary: pl.DataFrame, labels: dict[str, str], highlight: str | None,
         ax.text(v, y, f"  {v:,.0f}", va="center", color=INK_2, fontsize=9)
     if threshold is not None:
         ax.axvline(threshold, color=INK, lw=1, ls="--")
-        ax.text(threshold, rows.height - 0.35, " seasonal-naive threshold", color=INK_2, fontsize=8, va="bottom")
+        ax.text(threshold, rows.height - 0.35, f" {threshold_label}", color=INK_2, fontsize=8, va="bottom")
     ax.set_xlabel("MAE (MW), lower is better")
     ax.grid(axis="y", visible=False)
     ax.set_xlim(0, rows["MAE"].max() * 1.15)
@@ -83,15 +84,20 @@ def _spread(values: list[float], gap: float) -> list[float]:
 
 
 def lines_by(table: pl.DataFrame, x: str, models: list[str], labels: dict[str, str],
-             path: Path, title: str, xlabel: str, ylabel: str = "MAE (MW)") -> Path:
-    """Up to three models as direct-labelled lines (MAE by hour, by day, ...)."""
+             path: Path, title: str, xlabel: str, ylabel: str = "MAE (MW)",
+             colours: dict[str, str] | None = None) -> Path:
+    """Up to three models as direct-labelled lines (MAE by hour, by day, ...).
+
+    `colours` overrides the per-model defaults for a whole report, so that a
+    role ("the threshold") keeps one colour across that report's figures.
+    """
     fig, ax = plt.subplots(figsize=(10, 4.2))
     ends = []
     for model in list(dict.fromkeys(models))[:3]:
         part = table.filter(pl.col("model") == model).sort(x)
         if part.is_empty():
             continue
-        ax.plot(part[x], part["value"], color=colour_for(model), lw=2)
+        ax.plot(part[x], part["value"], color=(colours or {}).get(model, colour_for(model)), lw=2)
         ends.append((model, part[x][-1], part["value"][-1]))
     ax.set_ylim(bottom=0)
     ax.margins(x=0.02)
@@ -131,4 +137,26 @@ def residuals(daily: pl.DataFrame, acf: list[float], errors: pl.Series, label: s
     ax.set_xlabel("MW")
     fig.suptitle(f"Residual diagnostics - {label}", x=0.01, ha="left", fontsize=12, fontweight="bold", y=1.03)
     fig.tight_layout()
+    return _save(fig, path)
+
+
+def reliability_plot(table: pl.DataFrame, models: list[str], labels: dict[str, str],
+                     path: Path, title: str) -> Path:
+    """Share of actuals below each quantile forecast against the nominal level."""
+    fig, ax = plt.subplots(figsize=(5.6, 5))
+    ax.plot([0, 100], [0, 100], color=INK_2, lw=1, ls="--")
+    ax.text(3, 95, "dashed line: perfectly calibrated", color=INK_2, fontsize=8, va="top")
+    for colour, model in zip(SERIES, models[:2]):
+        part = table.filter(pl.col("model") == model).sort("q")
+        if part.is_empty():
+            continue
+        ax.plot(part["nominal_pct"], part["pct_below"], color=colour, lw=2, marker="o", ms=6,
+                markeredgecolor=SURFACE, markeredgewidth=1.5)
+        ax.annotate(f" {labels.get(model, model)}", (part["nominal_pct"][-1], part["pct_below"][-1]),
+                    color=INK_2, fontsize=8.5, va="center", annotation_clip=False)
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+    ax.set_xlabel("quantile level (%)")
+    ax.set_ylabel("actuals below the forecast (%)")
+    ax.set_title(title)
     return _save(fig, path)
