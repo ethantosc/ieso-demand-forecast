@@ -16,8 +16,8 @@ statsforecast, LightGBM). The plan is in [`docs/spec.md`](docs/spec.md).
 | Milestone 0 - forecast harvester | running daily since 2026-09-13; 127 consecutive days archived |
 | Milestone 1 - data | done - [`reports/data_quality.md`](reports/data_quality.md) |
 | Milestone 2 - EDA | done - [`reports/findings.md`](reports/findings.md) §3 |
-| Milestones 3-7 - backtest, ladder, LightGBM A and B, official comparison | built and tested; **awaiting the first real run** |
-| Milestone 8 - write-up | [`reports/findings.md`](reports/findings.md); results section fills in after the run |
+| Milestones 3-7 - backtest, ladder, LightGBM A and B, official comparison | done - run of 2026-10-20 |
+| Milestone 8 - write-up | done - [`reports/findings.md`](reports/findings.md) |
 
 ## The problem
 
@@ -56,9 +56,28 @@ flagged out of every model.
 
 ## Results
 
-Pending the first real run. The machine output will be
-[`reports/findings_auto.md`](reports/findings_auto.md); the interpretation goes in
-[`reports/findings.md`](reports/findings.md) §6.
+Backtest 2024-2025 (731 days) and IESO comparison (127 days, 2026-06-14 to
+2026-10-18). MAE in MW; every model scored on the same hours.
+
+| | Backtest | vs IESO window |
+|---|---|---|
+| Seasonal naive, y(t-168) - the spec's threshold | 1,275 | 1,318 |
+| Naive, legal (D-1 or D-2) | 995 | 1,056 |
+| MSTL + ARIMA | 834 | 894 |
+| **LightGBM Track A** (expanding window) | **801** | **868** |
+| *Track B - observed temperature, upper bound only* | *620* | *613* |
+| IESO's own day-ahead forecast | - | **470** |
+
+- LightGBM Track A beats the spec's threshold by 37% (Diebold-Mariano p < 0.0001),
+  but the legal naive turns out to be the stronger simple baseline, and the margin
+  over the best classical model is only 4% and untested.
+- The spec's original y(t-24) naive read unpublished data; that leak was worth 168 MW.
+- Perfect weather knowledge would be worth 181 MW overall and 370 MW in summer.
+- IESO's forecast is far better (470 vs 868 MW) - and better than the perfect-weather
+  upper bound, so its edge is more than weather forecasts.
+
+Interpretation: [`reports/findings.md`](reports/findings.md). Every number:
+[`reports/findings_auto.md`](reports/findings_auto.md).
 
 ## Limitations
 
@@ -76,7 +95,7 @@ In Google Colab, no local install needed. Open each notebook from GitHub
 |---|---|---|
 | `notebooks/00_ingest_colab.ipynb` | download IESO demand, build and validate the Parquet | ~2 min |
 | `notebooks/01_eda.ipynb` | Milestone 2 analysis | ~3 min |
-| `notebooks/02_results.ipynb` | tests, full backtest, official comparison, report | ~20-30 min |
+| `notebooks/02_results.ipynb` | tests, full backtest, official comparison, report | ~35 min |
 
 Locally, with Python 3.12+ and `pip install -r requirements.txt`:
 

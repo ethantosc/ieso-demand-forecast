@@ -261,12 +261,14 @@ ieso-demand-forecast/
 | 0 | 官方預測收割器 | ✅ 2026-09-13 起每日運作,127 天零缺口 |
 | 1 | 資料取得 | ✅ `data_quality.md` |
 | 2 | EDA | ✅ `findings.md` §3、`notebooks/01_eda.ipynb` |
-| 3 | 回測框架 | ✅ 已建、已測試 |
-| 4 | Baseline | ✅ 已建;門檻數字待真實資料執行 |
-| 5 | 古典模型 | ✅ 已建;待執行 |
-| 6 | LightGBM 軌道 A | ✅ 已建;待執行 |
-| 7 | LightGBM 軌道 B | ✅ 已建;待執行(需 ECCC 可連線) |
-| 8 | 撰寫 | 🔶 `findings.md` 結果章節待執行後完成 |
+| 3 | 回測框架 | ✅ |
+| 4 | Baseline | ✅ seasonal naive 1,275 MW;合法 naive 995 MW 反而更強 |
+| 5 | 古典模型 | ✅ MSTL + ARIMA 834 MW |
+| 6 | LightGBM 軌道 A | ✅ 801 MW,贏過門檻 37%(p < 0.0001) |
+| 7 | LightGBM 軌道 B | ✅ 620 MW(上界) |
+| 8 | 撰寫 | ✅ `reports/findings.md`;IESO 官方 470 MW |
+
+> v1 結果對規格的一個修正:§5 把 seasonal naive 當「真正的門檻」,但安大略的需求「昨天」比「上週」更像今天,合法 naive 顯著勝過 seasonal naive。v2 的門檻應取兩者中較強者。
 
 ---
 
