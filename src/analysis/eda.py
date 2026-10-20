@@ -434,9 +434,14 @@ def diff_distribution(frame: pl.DataFrame) -> pl.DataFrame:
     expectations before the framework exists. The seasonal-naive threshold is
     set in Milestone 4.
     """
+    # Rows are missing around the 2025-05-01 gap and the excluded blackout days,
+    # so a shift by k rows is only k hours when the timestamps say so.
+    ts = pl.col("ts_utc")
     ordered = frame.sort("ts_utc").with_columns(
-        (pl.col(TARGET) - pl.col(TARGET).shift(24)).abs().alias("abs_d24"),
-        (pl.col(TARGET) - pl.col(TARGET).shift(168)).abs().alias("abs_d168"),
+        pl.when(ts - ts.shift(24) == pl.duration(hours=24))
+        .then((pl.col(TARGET) - pl.col(TARGET).shift(24)).abs()).alias("abs_d24"),
+        pl.when(ts - ts.shift(168) == pl.duration(hours=168))
+        .then((pl.col(TARGET) - pl.col(TARGET).shift(168)).abs()).alias("abs_d168"),
     )
     rows = []
     for column in ("abs_d24", "abs_d168"):

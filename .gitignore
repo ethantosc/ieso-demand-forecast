@@ -1,7 +1,9 @@
 data/raw/demand/
+data/raw/weather/
 data/staging/
 data/curated/
 
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+.pytest_cache/

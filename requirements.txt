@@ -1,0 +1,10 @@
+# Versions this was built and tested with (2026-10). Colab installs the same via pip.
+polars>=2.0
+duckdb>=1.5
+holidays>=0.100
+lightgbm>=4.6
+statsforecast>=2.1
+pandas>=2.2
+pyarrow>=20
+matplotlib>=3.10
+pytest>=8
