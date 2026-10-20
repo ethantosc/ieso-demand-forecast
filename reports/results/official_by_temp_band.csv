@@ -1,0 +1,28 @@
+model,temp_band,n_hours,MAE,RMSE,MAPE,ME
+ieso_official,extreme cold (bottom 5%),168,485.1,590.1,2.82,-268.7
+lgbm_B_expanding,extreme cold (bottom 5%),168,636.6,800.9,3.69,-64.9
+lgbm_A_expanding,extreme cold (bottom 5%),168,667.4,843.8,3.9,87.3
+mstl_arima,extreme cold (bottom 5%),168,686.6,910.5,4.03,1.1
+lgbm_B_rolling_3y,extreme cold (bottom 5%),168,689.4,836.4,3.98,-203.1
+lgbm_A_rolling_3y,extreme cold (bottom 5%),168,709.6,880.5,4.13,-46.3
+mstl_ets,extreme cold (bottom 5%),168,783.2,1026.7,4.56,26.4
+naive,extreme cold (bottom 5%),168,811.4,1135.3,4.76,309.2
+seasonal_naive,extreme cold (bottom 5%),168,918.1,1103.6,5.27,-230.5
+lgbm_B_rolling_3y,extreme hot (top 5%),168,651.5,797.6,2.86,-216.0
+lgbm_B_expanding,extreme hot (top 5%),168,738.6,951.4,3.24,-324.2
+ieso_official,extreme hot (top 5%),168,756.6,1030.6,3.36,365.6
+mstl_ets,extreme hot (top 5%),168,970.1,1177.4,4.13,-372.4
+mstl_arima,extreme hot (top 5%),168,1027.6,1255.0,4.35,-536.1
+naive,extreme hot (top 5%),168,1435.4,1913.1,6.07,-1184.1
+lgbm_A_rolling_3y,extreme hot (top 5%),168,1699.2,2001.4,7.21,-1375.9
+lgbm_A_expanding,extreme hot (top 5%),168,1941.8,2210.9,8.24,-1631.2
+seasonal_naive,extreme hot (top 5%),168,2915.1,3322.0,12.54,-2486.7
+ieso_official,normal,2712,451.0,573.1,2.38,-204.8
+lgbm_B_expanding,normal,2712,603.7,761.4,3.18,59.8
+lgbm_B_rolling_3y,normal,2712,611.3,785.0,3.22,100.0
+lgbm_A_expanding,normal,2712,813.8,1062.2,4.26,159.2
+lgbm_A_rolling_3y,normal,2712,859.5,1114.5,4.49,227.8
+mstl_arima,normal,2712,898.3,1146.1,4.68,80.6
+mstl_ets,normal,2712,914.8,1153.2,4.78,52.0
+naive,normal,2712,1047.9,1352.8,5.43,106.1
+seasonal_naive,normal,2712,1243.7,1573.3,6.53,324.2

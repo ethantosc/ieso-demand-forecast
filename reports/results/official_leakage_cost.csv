@@ -1,0 +1,3 @@
+model,n_hours,MAE,RMSE,MAPE,ME
+naive_leaky,3048,867.6,1126.9,4.5,23.6
+naive,3048,1056.2,1378.8,5.43,46.1

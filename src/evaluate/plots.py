@@ -59,22 +59,51 @@ def ladder(summary: pl.DataFrame, labels: dict[str, str], highlight: str | None,
     return _save(fig, path)
 
 
+def colour_for(model: str) -> str:
+    """One colour per model, the same in every figure - never by position in a list."""
+    if model.startswith("lgbm_A"):
+        return SERIES[0]
+    if model == "seasonal_naive":
+        return SERIES[1]
+    if model == "ieso_official":
+        return SERIES[2]
+    return INK_2
+
+
+def _spread(values: list[float], gap: float) -> list[float]:
+    """Nudge label positions apart so no two are closer than `gap`, keeping their order."""
+    order = sorted(range(len(values)), key=lambda i: values[i])
+    placed = [0.0] * len(values)
+    previous = None
+    for i in order:
+        placed[i] = values[i] if previous is None else max(values[i], previous + gap)
+        previous = placed[i]
+    shift = (sum(placed) - sum(values)) / len(values)   # recentre on the true ends
+    return [p - shift for p in placed]
+
+
 def lines_by(table: pl.DataFrame, x: str, models: list[str], labels: dict[str, str],
              path: Path, title: str, xlabel: str, ylabel: str = "MAE (MW)") -> Path:
     """Up to three models as direct-labelled lines (MAE by hour, by day, ...)."""
     fig, ax = plt.subplots(figsize=(10, 4.2))
-    for colour, model in zip(SERIES, models[:3]):
+    ends = []
+    for model in list(dict.fromkeys(models))[:3]:
         part = table.filter(pl.col("model") == model).sort(x)
         if part.is_empty():
             continue
-        ax.plot(part[x], part["value"], color=colour, lw=2)
-        ax.annotate(f" {labels.get(model, model)}", (part[x][-1], part["value"][-1]),
-                    color=INK_2, fontsize=8.5, va="center", annotation_clip=False)
+        ax.plot(part[x], part["value"], color=colour_for(model), lw=2)
+        ends.append((model, part[x][-1], part["value"][-1]))
+    ax.set_ylim(bottom=0)
+    ax.margins(x=0.02)
+    if ends:
+        low, high = ax.get_ylim()
+        label_y = _spread([e[2] for e in ends], gap=0.06 * (high - low))
+        for (model, x_end, _), y in zip(ends, label_y):
+            ax.annotate(f" {labels.get(model, model)}", (x_end, y), color=INK_2, fontsize=8.5,
+                        va="center", annotation_clip=False)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_title(title)
-    ax.set_ylim(bottom=0)
-    ax.margins(x=0.02)
     return _save(fig, path)
 
 

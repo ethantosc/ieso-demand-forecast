@@ -26,13 +26,17 @@ against IESO's published day-ahead forecast on the 127 days the harvester archiv
    that stronger simple baseline LightGBM's margin is 19%, and against the best
    classical model (MSTL + ARIMA, 834 MW) only 4% — a gap that was not tested for
    significance.
-3. **The leak in the original spec would have been worth 168 MW.** Its y(t-24)
+3. **LightGBM's edge is uneven.** It comes from winter, the shoulder seasons, holidays
+   and the night and evening hours. In summer, at the afternoon peak and on the hottest
+   days — the hours that matter most for a grid — the classical models match or beat
+   it, in both evaluation windows (§5).
+4. **The leak in the original spec would have been worth 168 MW.** Its y(t-24)
    "naive" scores 827 MW against the legal naive's 995 MW. That alone would have put
    the dumbest baseline level with the classical models.
-4. **Weather is the biggest missing piece.** Perfect knowledge of tomorrow's
+5. **Weather is the biggest missing piece.** Perfect knowledge of tomorrow's
    temperature (Track B, an upper bound) would cut the error by 181 MW overall, 370 MW
    in summer and 429 MW on the hottest days.
-5. **IESO's own forecast is far better than anything here**: MAE 470 MW against 868 MW
+6. **IESO's own forecast is far better than anything here**: MAE 470 MW against 868 MW
    for the best Track A model on the same 127 days (p < 0.0001). Even Track B, with
    perfect observed temperature, reaches only 613 MW.
 
@@ -126,24 +130,44 @@ the legal naive beats it by 279 MW a day (p ≈ 7 × 10⁻⁹), for the reason i
 plan should set the threshold at the better of the two. Against the legal naive,
 LightGBM's margin is 19%. Against MSTL + ARIMA it is 33 MW, 4%, and the run did not
 test that gap; it could be real or noise. The 3-year LightGBM (868 MW) is worse than
-MSTL + ARIMA. The honest summary is that the gradient-boosted model is the best of the
-ladder, but not by a margin the run can certify over the best classical model.
+MSTL + ARIMA. The gradient-boosted model is the best of the ladder overall, but not by
+a margin the run can certify over the best classical model — and, as the breakdown
+below shows, not everywhere.
 
-**Where the models win and lose** *(auto §2 decompositions)*:
+**Where the models win and lose** *(auto §2 decompositions; tables in
+`reports/results/`)*:
 
 - **By hour.** Errors are lowest overnight (≈ 560–590 MW for LightGBM at hours-ending
   1–5), climb through the morning, jump at the cutoff (hour-ending 12), and peak in
   the afternoon (≈ 1,050 MW at 13:00–16:00 EST) before easing in the evening.
-- **By season.** Summer is hardest for everything (LightGBM 1,032 MW against 765 MW
-  in winter and 702 MW in the shoulder seasons). Air-conditioning load swings with
-  temperature, and Track A cannot see temperature.
+  **At hours-ending 12–16, MSTL + ARIMA beats LightGBM** by 15–42 MW; LightGBM wins
+  every other hour.
+- **By season.** Summer is hardest for everything, and there **LightGBM has no edge**:
+  MSTL + ETS 1,009 MW, LightGBM 1,032, MSTL + ARIMA 1,033. LightGBM's lead is in winter
+  (765 against 859 MW for MSTL + ARIMA) and the shoulder seasons (702 against 721).
 - **By day type.** Holidays separate the models most clearly. LightGBM, which has
   holiday flags, scores 798 MW on statutory holidays; the MSTL models, which have no
   calendar knowledge beyond the daily and weekly cycle, score about 1,240 MW, worse
   than on any other day type.
-- **On extreme-temperature days** (hottest and coldest 5% of days). LightGBM degrades
-  to 1,127 MW on the hottest days and 885 MW on the coldest, against 778 MW on normal
-  days.
+- **On extreme-temperature days** (hottest and coldest 5% of days, 37–38 days each).
+  On the coldest days LightGBM is clearly best (885 against 1,018 MW for MSTL + ARIMA).
+  On the hottest days **MSTL + ETS is best** (1,074 MW, against 1,127 for LightGBM and
+  1,166 for MSTL + ARIMA).
+
+**The same pattern holds in the IESO window** *(auto §4)*, which no model was tuned on:
+in summer LightGBM 958 MW against 947 for MSTL + ARIMA; at hours-ending 12–14 the
+classical models lead by 49–106 MW; and on the 7 hottest days LightGBM scores 1,942 MW,
+twice MSTL + ETS's 970. Seven days is a small sample, but it points the same way as
+the 37-day backtest figure.
+
+**Why, as a hypothesis — not tested.** LightGBM's forecast is last week's value plus a
+learned change, and its strongest inputs compare against last week. Training teaches it
+that large week-on-week jumps are rare, so when a heat wave builds it shrinks the jump
+it should be forecasting. The MSTL models re-estimate from the latest eight weeks at
+every origin and carry the most recent level straight forward, which is what a heat
+wave needs. The afternoon loss fits too: from hour-ending 12 LightGBM loses its lag-24
+input, and its error steps up by 128 MW at that point against MSTL + ARIMA's 68 MW
+(§3). Testing this would mean looking at errors day by day through specific heat waves.
 
 **3-year or expanding window?** Expanding wins for LightGBM in both tracks (801 vs 868;
 620 vs 662). That reverses what the level analysis in §4 would suggest, where a
@@ -227,8 +251,10 @@ in the autumn weeks. The single-day check in spec §1 (2026-06-14) had shown +61
 one day was not representative.
 
 **The small print.** 127 days, one summer, no winter. Holidays (3 days in the window)
-and extreme-temperature days (about 6 each) are too few to read much into, which is
-why LightGBM's poor holiday score here (1,512 MW) is not treated as a finding.
+and extreme-temperature days (7 each) are too few to stand on their own. LightGBM's poor
+holiday score here (1,512 MW) is not treated as a finding, because it contradicts the
+731-day backtest; its poor hottest-day score is mentioned in §5 only because it agrees
+with the backtest.
 The comparison should be rerun as the archive grows; the harvester keeps adding a day
 at a time.
 
@@ -287,8 +313,12 @@ In rough order of expected payoff:
    and test the overnight hypothesis in §7.
 3. **Set the threshold at the better of naive and seasonal naive**, and add
    significance tests between adjacent rungs, not only against the threshold.
-4. **Use recent forecast error as a feature** — the 0.33 day-to-day error
+4. **Combine LightGBM with MSTL + ETS.** Their strengths are complementary (§5):
+   LightGBM in winter, on holidays and at night; MSTL + ETS in summer and on the hottest
+   days. A simple average, or a weight chosen on data before the test window, is the
+   obvious first try.
+5. **Use recent forecast error as a feature** — the 0.33 day-to-day error
    autocorrelation says yesterday's miss carries information.
-5. **Load-weighted temperature**, and probabilistic forecasts (quantile LightGBM).
-6. **Repeat the IESO comparison** once the archive covers a full year, including a
+6. **Load-weighted temperature**, and probabilistic forecasts (quantile LightGBM).
+7. **Repeat the IESO comparison** once the archive covers a full year, including a
    winter.

@@ -71,6 +71,8 @@ Backtest 2024-2025 (731 days) and IESO comparison (127 days, 2026-06-14 to
 - LightGBM Track A beats the spec's threshold by 37% (Diebold-Mariano p < 0.0001),
   but the legal naive turns out to be the stronger simple baseline, and the margin
   over the best classical model is only 4% and untested.
+- That edge is uneven: in summer, at the afternoon peak and on the hottest days, the
+  classical models match or beat LightGBM, in both windows.
 - The spec's original y(t-24) naive read unpublished data; that leak was worth 168 MW.
 - Perfect weather knowledge would be worth 181 MW overall and 370 MW in summer.
 - IESO's forecast is far better (470 vs 868 MW) - and better than the perfect-weather

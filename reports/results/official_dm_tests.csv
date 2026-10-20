@@ -1,0 +1,10 @@
+model,benchmark,n_days,mean_diff,dm_stat,p_value
+naive,seasonal_naive,127,-261.6,-2.16,0.031
+mstl_ets,seasonal_naive,127,-407.3,-3.38,0.00073
+mstl_arima,seasonal_naive,127,-424.2,-3.63,0.00028
+lgbm_A_rolling_3y,seasonal_naive,127,-420.3,-4.91,8.9e-7
+lgbm_A_expanding,seasonal_naive,127,-450.0,-5.1,3.4e-7
+lgbm_B_rolling_3y,seasonal_naive,127,-700.1,-5.8,6.7e-9
+lgbm_B_expanding,seasonal_naive,127,-704.9,-6.01,1.9e-9
+ieso_official,seasonal_naive,127,-848.2,-7.16,7.9e-13
+lgbm_A_expanding,ieso_official,127,398.2,7.24,4.6e-13
