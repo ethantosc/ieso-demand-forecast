@@ -1,7 +1,293 @@
-# Findings — Ontario hourly demand forecasting, v1
+# Findings — Ontario hourly demand forecasting
 
-**Status:** final for v1 · results from the run of 2026-10-20 05:02 UTC, code at
-commit `5011a08`
+| | Results from | Code | Plan |
+|---|---|---|---|
+| **v2** — Part I | run of 2026-10-21 03:08 UTC | commit `ab9d3b7` | [`docs/spec-v2.md`](../docs/spec-v2.md), pre-registered |
+| **v1** — Part II, final and unchanged | run of 2026-10-20 05:02 UTC | commit `5011a08` | [`docs/spec.md`](../docs/spec.md) |
+
+Every v2 number comes from [`v2/findings_auto.md`](v2/findings_auto.md) or the tables
+beside it in `v2/results/` — machine output of `src/evaluate/run_v2.py` — cited as
+*(v2 auto §n)*. The exceptions are marked **post hoc**: they come from
+[`v2/diagnostics.md`](v2/diagnostics.md), checks written after the results were seen,
+which were not pre-registered and are not evidence for any v2 conclusion.
+
+---
+
+# Part I — v2
+
+## A. What v2 asked, and where it was judged
+
+v1 ended with four leads: archived weather forecasts, an ensemble of LightGBM with
+MSTL + ETS, Ontario Demand against exports, and probabilistic forecasts. Each one was
+suggested by v1's results, so judging them on v1's evaluation windows would have been
+choosing on the test set. `docs/spec-v2.md` fixed where and how v2 would be scored,
+and was committed before any v2 model code existed:
+
+- **Development year, 2023** — the only window whose results drive choices: which
+  naive is the threshold, and the ensemble weights.
+- **Clean holdout, 2026-01-01 to 2026-06-13** (164 days) — never scored in v1. The v2
+  verdicts come from here.
+- **Prospective window** — delivery days after the freeze date, 2026-10-20. Empty so
+  far. Each rerun of the notebook adds the days since; any later change to model code
+  moves the freeze date and empties it again.
+- **Seen windows** — the 2024–25 backtest and the IESO window (2026-06-14 to
+  2026-10-19) — reported for comparison with v1, not as evidence.
+
+A gap counts only when its Diebold-Mariano p-value, Holm-corrected within the window's
+pre-declared family of tests, is below 0.05. The holdout's limits were written down in
+advance: winter and spring plus the first 13 days of June, and no IESO forecasts (the
+archive starts 2026-06-14).
+
+## B. Answers in brief
+
+1. **Weather forecasts are the largest gain in the project so far.** LightGBM with
+   archived GFS temperature forecasts — using only model runs published before the
+   12:30 origin — scores **659 MW** on the holdout, against 856 MW for the same model
+   without weather trained over the same years: **197 MW, Holm p < 0.0001**
+   *(v2 auto §1, §3)*.
+2. **The best operational model is Ensemble C** (0.8 × LightGBM C + 0.2 × MSTL + ETS):
+   654 MW, 36.5% below the threshold's 1,030 MW. Its step over LightGBM C alone,
+   4.6 MW a day, is **not significant** (Holm p 0.54).
+3. **v1's summer and hot-day weakness was a missing-weather problem.** Without weather,
+   LightGBM is again the worst of the non-naive models in the holdout's June days.
+   With forecast temperature it beats MSTL + ARIMA, the best model without weather,
+   by 239 MW (§D).
+4. **Without weather, LightGBM's edge over the classical models does not hold up.** On
+   the holdout MSTL + ARIMA is ahead, 824 against 864 MW (Holm p 0.5); in the 2024–25
+   backtest LightGBM was ahead by 33 MW a day (Holm p 0.054). Neither gap is
+   significant.
+5. **The overnight-exports hypothesis from v1 is not supported** by the criterion fixed
+   in advance. At night our Ontario Demand error (561 MW) is larger than our export
+   error (406 MW); in fact Ontario Demand's error is the larger one at every hour of the
+   holdout *(v2 auto §6)*.
+6. **Quantile LightGBM is sharp but overconfident.** It beats the baseline on pinball
+   loss (226 against 320), but its 90% interval contains only 67% of outcomes and its
+   50% interval 30%. The baseline is close to nominal (89% and 46%) with a 90% interval
+   2.4 times as wide *(v2 auto §5)*.
+7. **IESO is still ahead**, on the seen window only: 470 MW against 621 MW for
+   Ensemble C (Holm p < 0.0001). LightGBM A, v1's best real forecast, scores 866 MW
+   there.
+   A clean comparison has to come from the prospective window.
+
+## C. Track C — what forecast weather is worth
+
+**The data.** Open-Meteo's Previous Runs API keeps, for every hour, what earlier GFS
+runs forecast for it: `previous_day1` from the run about a day before, `previous_day2`
+from about two days before. At the origin (D-1 11:00 EST, 16:00 UTC) the newest
+published run is D-1 06Z. EST hours 0–6 of day D therefore use `previous_day1` (runs
+24–29 h before the hour) and hours 7–23 use `previous_day2` (48–53 h). For hours 7–23
+this is conservative: a fresher legal run exists and is not used (spec-v2 §3). The same
+three airports as Track B, equal weight. The model is trained on the forecast series as
+well, so it learns how far to trust it.
+
+**Was the rule right?** The run checked before using it *(v2 auto §0)*. It compared 240
+archived values, 120 per series, with individual GFS runs from Open-Meteo's Single Runs
+API. Every value matched a run at the expected lead. 133 matched exactly one run, which
+was always at the expected lead; the other 107 matched several, because neighbouring
+runs often agree to 0.1 °C, and the expected lead was always among them. No value
+matched only a later, unpublished run *(`v2/weather_fc_meta.json`)*. The check covered five dates from May to
+September 2026; that the same mapping holds back to 2021 is assumed, not checked.
+
+**Coverage.** The archive is complete from April 2021 (March 2021: 24%), so Track C and
+its controls train from 2021-04-01. One gap: December 2023 (93%) and January 2024 (39%).
+It touches the end of the development year and the start of the seen backtest; the
+holdout is complete *(v2 auto, coverage table)*.
+
+**Three quantities**, each against a control trained over the same years so that the
+training window is not mixed in *(v2 auto §3)*:
+
+| MAE (MW) | Holdout (clean) | IESO window (seen) |
+|---|---|---|
+| A_2021 — no weather | 856 | 861 |
+| **C — GFS forecast temperature** | **659** | **630** |
+| B_2021 — observed temperature, the "upper bound" | 676 | 646 |
+| Value of forecast weather, A − C | 197 (Holm p < 0.0001) | 231 (Holm p 0.0044) |
+| Cost of forecast error, C − B | −17 | −16 |
+
+The value of forecast weather is large in every window, and 171 MW a day in the 2024–25
+backtest as well *(v2 auto §8)*.
+
+**The cost is negative, which should not happen.** Observed temperature is meant to be
+an upper bound: knowing tomorrow's weather exactly should beat a two-day-old forecast
+of it. Here the forecast won, by 16–17 MW, in both windows, so the spec's "share of the
+upper bound recovered" is meaningless and the report declines to give it. The
+pre-registered family has no test of C against B, so on the pre-registered evidence
+this is unexplained.
+
+**Post-hoc check, pending.** `scripts/diagnose_v2.py` asks whether this gap survives a
+Diebold-Mariano test, and whether it sits on days with gaps in the observed weather.
+Its result will replace this paragraph.
+
+The sign is not uniform *(v2 results, by temperature band)*: on the holdout's hottest
+5% of days observed temperature does win (B_2021 822 against C 883 MW), as an upper
+bound should; on the coldest 5% the forecast wins by a wide margin (700 against 836),
+and on ordinary days by 15 MW.
+
+## D. Where the errors went
+
+**By season** *(v2 auto §2)*. The holdout's "summer" is 1–13 June.
+
+| Holdout MAE (MW) | winter | shoulder | summer, 13 days |
+|---|---|---|---|
+| MSTL + ETS | 835 | 889 | 1,061 |
+| MSTL + ARIMA | 801 | 808 | 1,032 |
+| LightGBM A | 801 | 839 | 1,324 |
+| **LightGBM C** | **643** | **650** | **793** |
+| Ensemble C | 636 | 647 | 786 |
+
+Without weather, LightGBM repeats v1's pattern: level with the classical models in
+winter, worst of them in June. With forecast temperature the June weakness turns into
+its largest lead. The seen 2024–25 backtest, with two full summers, says the same:
+LightGBM C 755 MW in summer against 1,009 for MSTL + ETS and 1,032 for LightGBM A
+*(v2 auto §4)*.
+
+**Extreme-temperature days** — the hottest and coldest 5% of holdout days, 9 days each,
+too few to stand alone. Hottest: LightGBM A 1,694, MSTL + ETS 1,468, LightGBM C 883 MW.
+Coldest: LightGBM A 1,037 — the worst of all models on those days, naive included —
+MSTL + ARIMA 802, LightGBM C 700.
+
+**By hour.** Forecast weather helps most in the afternoon and evening, where the errors
+are: from LightGBM A to LightGBM C, hour-ending 16 falls from 1,192 to 893 MW and
+hour-ending 19 from 988 to 677, against 653 to 539 at hour-ending 3. The step at hour-ending 12, where yesterday's value stops
+being known, is still there for every model (LightGBM C 742 → 831; the legal naive
+1,080 → 1,352).
+
+**Holidays.** LightGBM keeps the advantage its holiday flags gave it in v1: 929 MW for
+LightGBM A against 1,198–1,312 for the MSTL models, over the holdout's few holidays.
+
+## E. Ensembles
+
+Weights were fitted on 2023 and frozen *(v2 auto §4)*. LightGBM A gets 0.7 (seasonal
+version: 0.6 in summer, 0.7 otherwise); LightGBM C gets 0.8 in both versions, so
+Ensemble C's global and seasonal variants are the same forecast. On the holdout:
+
+- **Ensemble A** (823 MW) beats LightGBM A by 41 MW a day (Holm p 0.0004), but its
+  lead over MSTL + ETS, 61 MW a day, is not significant (Holm p 0.11), and it only
+  matches MSTL + ARIMA (824). Seasonal weights add nothing visible (820).
+- **Ensemble C** (654 MW) is not significantly better than LightGBM C alone (Holm
+  p 0.54).
+
+In the seen backtest both steps are significant (Ensemble A over LightGBM A by 30 MW
+a day, Ensemble C over LightGBM C by 24) *(v2 auto §8)*. The ensemble was proposed
+because MSTL + ETS covered LightGBM's summer weakness. Forecast weather removed that
+weakness, the development year already put 80% of the weight on LightGBM C, and what
+is left is a small gain that the holdout cannot confirm.
+
+## F. Ontario Demand against exports
+
+The criterion, fixed in advance (spec-v2 §5, LightGBM A on the holdout): (1) exports'
+share of the combined error is higher at night (hour-ending 24 and 1–5) than by day
+(8–20), **and** (2) at night the export error is at least as large as Ontario Demand's.
+(1) holds, 42% against 39%; (2) fails, 406 against 561 MW. **Not supported**
+*(v2 auto §6)*.
+
+![exports](v2/figures/holdout_exports_by_hour.png)
+
+The figure shows why. The export error is nearly flat through the day (395–562 MW);
+Ontario Demand's carries the daytime peak and is the larger of the two at every hour.
+Exports weigh relatively more at night only because Ontario's own error is smallest
+then. In the seen 2024–25 backtest the two are level at hours-ending 3–4 (exports 442,
+Ontario 438–441 MW) and Ontario's is larger everywhere else.
+
+One more pattern, not tested: the two errors partly cancel. Over the holdout,
+LightGBM A's Market Demand error (864 MW) is well below the sum of its Ontario (731) and
+export (484) errors *(v2 results, targets summary)* — consistent with exports
+adjusting to Ontario's own demand.
+
+**What this says about IESO.** Its forecast cannot be split into the two parts, so
+nothing here can test why its error peaks at hour-ending 24. Descriptively, across
+delivery hours IESO's error profile is negatively correlated with our export error
+(r = −0.42) *(v2 auto §6)*. Nothing supports v1's guess that exports explain it.
+
+## G. Probabilistic forecasts
+
+*(v2 auto §5)*
+
+| Holdout | pinball | 90% interval covers | 50% interval covers | 90% width (MW) |
+|---|---|---|---|---|
+| **Quantile LightGBM** (track C) | **226** | 67% | 30% | 1,693 |
+| Legal naive + empirical error quantiles | 320 | 89% | 46% | 4,097 |
+
+![reliability](v2/figures/holdout_reliability.png)
+
+The quantile model's median is well placed (49% of outcomes below it) but both tails
+are too short: 17% of outcomes fall below its 5% quantile, and only 84% below its 95%
+quantile. The seen IESO window repeats it (68% and 29% coverage). Pinball loss rewards
+its sharpness more than it penalises the miscalibration, but an interval that holds two
+outcomes in three when it claims nine in ten is not usable as stated.
+
+A likely reason, **not tested**: quantile trees learn the spread of their own training
+residuals, which is narrower than the error on new days. Calibrating the intervals on
+the development year (for example by conformal adjustment) is the obvious fix and would
+have to be pre-registered for v3.
+
+## H. Against IESO — seen window only
+
+128 delivery days, 2026-06-14 to 2026-10-19 *(v2 auto §8)*.
+
+| | MAE (MW) | ME (MW) |
+|---|---|---|
+| **IESO day-ahead forecast** | **470** | −176 |
+| Ensemble C | 621 | +37 |
+| LightGBM C | 630 | +41 |
+| LightGBM B, observed temperature (upper bound) | 644 | +68 |
+| LightGBM A (v1's model) | 866 | +60 |
+| Naive, legal | 1,053 | +43 |
+
+IESO is ahead of Ensemble C by 152 MW a day (Holm p < 0.0001). In v1 the gap to the best
+real forecast was about 400 MW; forecast temperature closed most of it. IESO also still
+under-forecasts this window by 176 MW on average, while ours is close to unbiased.
+
+This window is not evidence. v1 scored it, and v1's results shaped v2. The clean version
+of this comparison is the prospective window, which needs reruns to fill — and a winter.
+
+## I. Seen windows — does v2 reproduce v1?
+
+**The backtest, exactly.** For every model v1 had, the 2024–25 numbers are unchanged:
+legal naive 995, seasonal naive 1,275, MSTL + ETS 874, MSTL + ARIMA 834, LightGBM A 801
+*(v2 auto §8)*. The v2 changes to the shared code did not alter v1's models on real data.
+The gap v1 left untested — LightGBM A against MSTL + ARIMA — is now tested: 33 MW a day,
+Holm p 0.054.
+
+**The IESO window, almost.** It has one more day than in v1 (2026-10-19). Most models
+moved by a few MW (legal naive 1,056 → 1,053, LightGBM A 868 → 866; IESO 470 both
+times). LightGBM B did not: 613 → 644.
+
+**Post-hoc check, pending.** If B's other 127 days were unchanged, its error on
+2026-10-19 alone would have to be about 4,600 MW. The suspected cause is that the
+observed weather for that day was not yet complete when the run fetched it, so B got
+missing inputs for a day it then forecast; `scripts/diagnose_v2.py` checks this, and
+its result will replace this paragraph. Track C uses forecasts, which exist ahead of
+time, so it cannot be affected in the same way.
+
+## J. Deviations from spec-v2, and limits
+
+1. **B_2021 was not run on the seen backtest.** Spec-v2 §7.1 dropped only the 2003-window
+   Track B there; the code skipped both. It affects a seen window only — the Track C
+   table has no backtest row — and will be fixed with the next code change.
+2. **Track C trains from April 2021**, not March as the spec expected; the start is set
+   by the rule (first month with ≥ 95% coverage), not by hand.
+3. **The run took 96 minutes**, above the 60–80 the spec estimated.
+4. **The holdout has no full summer and no IESO forecasts.** A clean summer test needs the
+   prospective window to reach summer 2027.
+5. **The forecast-run mapping was verified on five dates in 2026 only** (§C).
+6. **Temperature only.** No humidity, cloud cover or wind, and the same equal-weight three
+   airports as v1.
+7. **The quantile intervals are not calibrated** (§G).
+8. **Post-hoc checks** in `v2/diagnostics.md` were written after seeing the results.
+
+## K. Next
+
+1. **Rerun the notebook every month or so.** That fills the prospective window — the
+   clean test against IESO, including this coming winter. Reruns count only while the code
+   is untouched; the report prints the freeze date it used.
+2. **v3 candidates**, each to be pre-registered before it is built: calibrated intervals;
+   the fresher legal GFS run for hours 7–23; humidity and cloud cover; load-weighted
+   temperature; yesterday's forecast error as a feature.
+
+---
+
+# Part II — v1
 
 Every number here comes from [`findings_auto.md`](findings_auto.md), the
 machine-written output of `src/evaluate/run.py`, or from `data_quality.md`. This file
