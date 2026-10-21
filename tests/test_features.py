@@ -5,25 +5,10 @@ Run from the repo root:  python -m pytest tests -q
 
 from datetime import date, datetime, timedelta
 
-import numpy as np
 import polars as pl
 import pytest
 
 from src.transform import features as F
-
-
-def _staging(days: int = 60, seed: int = 0) -> pl.DataFrame:
-    rng = np.random.default_rng(seed)
-    start = datetime(2025, 2, 1)
-    ts_est = [start + timedelta(hours=i) for i in range(days * 24)]
-    frame = pl.DataFrame({
-        "ts_utc": [t + timedelta(hours=5) for t in ts_est],
-        "market_demand_mw": 17000 + rng.normal(0, 500, len(ts_est)),
-    })
-    return frame.with_columns(
-        pl.col("ts_utc").dt.replace_time_zone("UTC").dt.convert_time_zone(F.LOCAL_TZ)
-        .dt.replace_time_zone(None).dt.date().alias("local_date")
-    )
 
 
 TARGET_DAY = date(2025, 3, 15)
@@ -46,34 +31,34 @@ def _corrupt(staging: pl.DataFrame, from_est: datetime, value: float) -> pl.Data
     )
 
 
-def test_nothing_after_the_cutoff_reaches_day_d():
-    clean = _staging()
+def test_nothing_after_the_cutoff_reaches_day_d(make_staging):
+    clean = make_staging()
     before = _features_for(clean, TARGET_DAY)
     after = _features_for(_corrupt(clean, _cutoff(TARGET_DAY), 999_999.0), TARGET_DAY)
     assert before.height == 24
     assert before.equals(after), "a feature for day D changed when only post-cutoff data changed"
 
 
-def test_the_last_pre_cutoff_hour_is_used():
+def test_the_last_pre_cutoff_hour_is_used(make_staging):
     """Control: corrupting from one hour earlier must change something, or the test above proves nothing."""
-    clean = _staging()
+    clean = make_staging()
     before = _features_for(clean, TARGET_DAY)
     after = _features_for(_corrupt(clean, _cutoff(TARGET_DAY) - timedelta(hours=1), 999_999.0), TARGET_DAY)
     assert not before.equals(after)
     assert after["origin_last_obs"].unique().to_list() == [999_999.0]
 
 
-def test_lag24_only_where_legal():
-    frame = F.build(_staging()).filter(pl.col("delivery_date") == TARGET_DAY)
+def test_lag24_only_where_legal(make_staging):
+    frame = F.build(make_staging()).filter(pl.col("delivery_date") == TARGET_DAY)
     legal = frame.filter(pl.col("h") < F.CUTOFF_HOUR_EST)["lag24_if_known"]
     illegal = frame.filter(pl.col("h") >= F.CUTOFF_HOUR_EST)["lag24_if_known"]
     assert legal.null_count() == 0
     assert illegal.null_count() == illegal.len()
 
 
-def test_missing_hour_does_not_misalign_shifts():
+def test_missing_hour_does_not_misalign_shifts(make_staging):
     """Drop one hour; lag168 a week later must still point at the same clock hour."""
-    staging = _staging()
+    staging = make_staging()
     hole = datetime(2025, 3, 1, 7) + timedelta(hours=5)
     gappy = staging.filter(pl.col("ts_utc") != hole)
     frame = F.build(gappy)
@@ -84,16 +69,16 @@ def test_missing_hour_does_not_misalign_shifts():
     assert next_hour["lag168"].item() == pytest.approx(expected)
 
 
-def test_excluded_dates_feed_nothing():
-    staging = _staging()
+def test_excluded_dates_feed_nothing(make_staging):
+    staging = make_staging()
     frame = F.build(staging, excluded_local_dates=[date(2025, 3, 1)])
     assert frame.filter(pl.col("ts_est") == datetime(2025, 3, 1, 12))["y"].item() is None
     assert frame.filter(pl.col("ts_est") == datetime(2025, 3, 8, 12))["lag168"].item() is None
 
 
-def test_weather_week_deltas_survive_a_missing_day():
+def test_weather_week_deltas_survive_a_missing_day(make_staging):
     """Temperature = hours since start, so every one-week delta must be exactly 168."""
-    staging = _staging()
+    staging = make_staging()
     start = datetime(2025, 2, 1)
     hours = [start + timedelta(hours=i) for i in range(60 * 24)]
     weather = pl.DataFrame({"ts_est": hours, "temp": [float(i) for i in range(len(hours))]})

@@ -9,7 +9,6 @@ import pytest
 from src.evaluate import metrics
 from src.models import ensemble, lgbm, probabilistic
 from src.transform import features as F
-from tests.test_features import _staging
 
 
 def test_holm_matches_hand_calculation():
@@ -56,8 +55,8 @@ def test_ensemble_applies_frozen_weights_without_refitting():
     assert (joined["yhat"] - joined["e"]).abs().max() < 1e-9
 
 
-def test_quantile_baseline_offsets_use_only_past_actuals():
-    frame = F.build(_staging(days=440))          # 2025-02-01 .. 2026-04-15
+def test_quantile_baseline_offsets_use_only_past_actuals(make_staging):
+    frame = F.build(make_staging(days=440))          # 2025-02-01 .. 2026-04-15
     march = [date(2026, 3, 1) + timedelta(d) for d in range(31)]
     clean = probabilistic.empirical_quantiles(frame, march, "seasonal_naive")
     # Overwrite actuals from the day before the refit onward; lag columns stay as built,
@@ -69,8 +68,8 @@ def test_quantile_baseline_offsets_use_only_past_actuals():
     assert clean.equals(after)
 
 
-def test_quantile_forecasts_are_ordered():
-    frame = F.build(_staging(days=120))
+def test_quantile_forecasts_are_ordered(make_staging):
+    frame = F.build(make_staging(days=120))
     days = [date(2025, 5, 20) + timedelta(d) for d in range(3)]
     q = lgbm.forecast_quantiles(frame, days, "A", "since", (0.05, 0.5, 0.95), n_jobs=1,
                                 train_start=date(2025, 2, 1), min_train_days=20)
