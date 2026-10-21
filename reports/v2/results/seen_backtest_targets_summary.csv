@@ -1,0 +1,7 @@
+model,target,n_hours,MAE,RMSE,MAPE,ME
+lgbm_A_expanding,exports,17544,501.1,643.9,26.03,-12.9
+naive,exports,17544,568.6,735.8,29.13,-3.0
+seasonal_naive,exports,17544,685.1,874.9,37.11,-6.8
+lgbm_A_expanding,ontario,17544,726.5,1019.1,4.37,2.2
+naive,ontario,17544,942.6,1296.0,5.72,-4.5
+seasonal_naive,ontario,17544,1213.0,1689.5,7.29,-23.6

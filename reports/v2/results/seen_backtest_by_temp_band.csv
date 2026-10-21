@@ -1,0 +1,34 @@
+model,temp_band,n_hours,MAE,RMSE,MAPE,ME
+ens_C_global,extreme cold (bottom 5%),912,825.2,1046.1,3.88,-147.3
+ens_C_seasonal,extreme cold (bottom 5%),912,825.2,1046.1,3.88,-147.3
+lgbm_C_2021,extreme cold (bottom 5%),912,859.4,1084.4,4.04,-82.9
+ens_A_seasonal,extreme cold (bottom 5%),912,885.1,1112.5,4.17,-527.8
+ens_A_global,extreme cold (bottom 5%),912,885.1,1112.5,4.17,-527.8
+lgbm_A_expanding,extreme cold (bottom 5%),912,892.6,1111.2,4.21,-580.5
+lgbm_A_2021,extreme cold (bottom 5%),912,957.8,1153.9,4.49,-552.2
+mstl_arima,extreme cold (bottom 5%),912,1043.9,1280.8,4.9,-420.8
+mstl_ets,extreme cold (bottom 5%),912,1066.2,1318.3,5.01,-404.8
+naive,extreme cold (bottom 5%),912,1073.9,1372.7,4.99,-435.1
+seasonal_naive,extreme cold (bottom 5%),912,1369.6,1664.6,6.38,-1142.6
+lgbm_C_2021,extreme hot (top 5%),888,805.5,1041.7,3.79,-176.2
+ens_C_global,extreme hot (top 5%),888,808.9,1056.2,3.79,-245.3
+ens_C_seasonal,extreme hot (top 5%),888,808.9,1056.2,3.79,-245.3
+ens_A_seasonal,extreme hot (top 5%),888,1102.8,1465.5,5.08,-793.3
+ens_A_global,extreme hot (top 5%),888,1113.1,1470.3,5.13,-838.6
+mstl_ets,extreme hot (top 5%),888,1142.2,1570.8,5.3,-521.5
+lgbm_A_expanding,extreme hot (top 5%),888,1172.7,1522.9,5.4,-974.5
+mstl_arima,extreme hot (top 5%),888,1236.0,1685.1,5.72,-719.7
+lgbm_A_2021,extreme hot (top 5%),888,1374.8,1763.7,6.34,-1006.4
+naive,extreme hot (top 5%),888,1513.8,1983.2,6.96,-997.9
+seasonal_naive,extreme hot (top 5%),888,2481.4,2950.2,11.48,-2231.6
+ens_C_global,normal,15742,649.0,831.3,3.58,14.4
+ens_C_seasonal,normal,15742,649.0,831.3,3.58,14.4
+lgbm_C_2021,normal,15742,674.0,862.8,3.71,5.9
+ens_A_seasonal,normal,15742,742.3,957.7,4.08,66.5
+ens_A_global,normal,15742,745.2,961.8,4.1,69.9
+lgbm_A_expanding,normal,15742,774.5,1002.7,4.25,78.9
+mstl_arima,normal,15742,798.8,1034.4,4.38,60.5
+lgbm_A_2021,normal,15742,827.1,1072.1,4.55,100.7
+mstl_ets,normal,15742,847.7,1084.2,4.68,48.7
+naive,normal,15742,961.5,1255.1,5.29,73.1
+seasonal_naive,normal,15742,1201.1,1562.7,6.59,158.3

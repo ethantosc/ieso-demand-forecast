@@ -1,0 +1,16 @@
+model,benchmark,n_days,mean_diff,dm_stat,p_value,reason,p_holm
+mstl_ets,naive,164,-146.5,-3.62,0.00029,adjacent rung,0.0014
+mstl_arima,mstl_ets,164,-59.6,-3.6,0.00031,adjacent rung,0.0014
+lgbm_A_expanding,mstl_arima,164,40.3,1.14,0.25,adjacent rung,0.5
+ens_A_global,lgbm_A_expanding,164,-41.4,-3.98,0.000069,adjacent rung,0.00041
+lgbm_C_2021,ens_A_global,164,-163.9,-4.11,0.00004,adjacent rung,0.00029
+ens_C_global,lgbm_C_2021,164,-4.6,-0.61,0.54,adjacent rung,0.54
+mstl_arima,naive,164,-206.1,-5.25,1.5e-7,vs threshold,1.5e-6
+lgbm_A_expanding,naive,164,-165.8,-4.13,0.000036,vs threshold,0.00029
+ens_A_global,naive,164,-207.2,-5.57,2.6e-8,vs threshold,2.9e-7
+lgbm_C_2021,naive,164,-371.0,-8.05,8.5e-16,vs threshold,1.1e-14
+ens_C_global,naive,164,-375.6,-8.78,1.6e-18,vs threshold,2.4e-17
+ens_A_seasonal,naive,164,-210.1,-5.65,1.6e-8,vs threshold,1.9e-7
+ens_C_seasonal,naive,164,-375.6,-8.78,1.6e-18,vs threshold,2.4e-17
+lgbm_C_2021,lgbm_A_2021,164,-197.3,-5.1,3.4e-7,specified,3.1e-6
+ens_A_global,mstl_ets,164,-60.7,-2.09,0.037,specified,0.11

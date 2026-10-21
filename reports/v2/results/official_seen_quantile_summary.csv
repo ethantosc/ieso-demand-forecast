@@ -1,0 +1,3 @@
+model,n_hours,coverage_90_pct,coverage_50_pct,width_90_mw,mean_pinball
+q_lgbm,3072,67.9,29.1,1609.0,214.2
+q_baseline,3072,87.7,48.0,4137.0,331.1

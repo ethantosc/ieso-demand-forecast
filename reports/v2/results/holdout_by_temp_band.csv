@@ -1,0 +1,40 @@
+model,temp_band,n_hours,MAE,RMSE,MAPE,ME
+ens_C_global,extreme cold (bottom 5%),216,699.3,882.0,3.17,171.8
+ens_C_seasonal,extreme cold (bottom 5%),216,699.3,882.0,3.17,171.8
+lgbm_C_2021,extreme cold (bottom 5%),216,700.0,895.9,3.18,232.4
+naive,extreme cold (bottom 5%),216,754.4,910.4,3.44,180.1
+lgbm_B_expanding,extreme cold (bottom 5%),216,796.3,989.1,3.62,285.4
+mstl_arima,extreme cold (bottom 5%),216,802.5,957.4,3.64,-38.2
+lgbm_B_2021,extreme cold (bottom 5%),216,835.7,1007.6,3.81,306.7
+mstl_ets,extreme cold (bottom 5%),216,859.5,1042.0,3.9,-70.4
+lgbm_A_2021,extreme cold (bottom 5%),216,883.6,1128.6,3.96,-513.2
+seasonal_naive,extreme cold (bottom 5%),216,889.6,1085.8,4.02,-322.6
+ens_A_global,extreme cold (bottom 5%),216,942.6,1150.3,4.24,-367.2
+ens_A_seasonal,extreme cold (bottom 5%),216,942.6,1150.3,4.24,-367.2
+lgbm_A_expanding,extreme cold (bottom 5%),216,1037.0,1280.4,4.66,-494.4
+lgbm_B_2021,extreme hot (top 5%),216,821.9,1023.7,3.99,-584.4
+lgbm_C_2021,extreme hot (top 5%),216,883.3,1113.1,4.28,-678.5
+lgbm_B_expanding,extreme hot (top 5%),216,889.8,1106.7,4.32,-578.3
+ens_C_seasonal,extreme hot (top 5%),216,935.8,1183.9,4.54,-740.5
+ens_C_global,extreme hot (top 5%),216,935.8,1183.9,4.54,-740.5
+mstl_ets,extreme hot (top 5%),216,1467.8,1863.5,7.13,-988.5
+mstl_arima,extreme hot (top 5%),216,1482.7,1902.6,7.15,-1072.5
+ens_A_seasonal,extreme hot (top 5%),216,1508.9,1848.9,7.25,-1372.6
+ens_A_global,extreme hot (top 5%),216,1545.1,1872.3,7.41,-1435.3
+lgbm_A_expanding,extreme hot (top 5%),216,1694.3,1981.7,8.09,-1626.7
+naive,extreme hot (top 5%),216,1709.7,2083.0,8.39,-1175.9
+lgbm_A_2021,extreme hot (top 5%),216,1738.5,2049.0,8.33,-1721.4
+seasonal_naive,extreme hot (top 5%),216,2189.0,2602.0,10.51,-1682.2
+ens_C_seasonal,normal,3504,633.9,815.0,3.3,27.1
+ens_C_global,normal,3504,633.9,815.0,3.3,27.1
+lgbm_C_2021,normal,3504,642.3,824.0,3.34,18.5
+lgbm_B_2021,normal,3504,656.9,841.7,3.42,33.6
+lgbm_B_expanding,normal,3504,662.3,842.4,3.45,43.7
+ens_A_seasonal,normal,3504,769.5,990.0,4.01,90.4
+ens_A_global,normal,3504,770.6,991.6,4.02,90.5
+mstl_arima,normal,3504,784.3,1012.7,4.07,59.9
+lgbm_A_2021,normal,3504,799.9,1026.0,4.17,79.5
+lgbm_A_expanding,normal,3504,802.0,1029.8,4.18,102.8
+mstl_ets,normal,3504,848.7,1082.9,4.43,61.8
+naive,normal,3504,1004.8,1283.0,5.25,68.9
+seasonal_naive,normal,3504,1111.9,1424.6,5.75,126.3
