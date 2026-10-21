@@ -48,6 +48,7 @@ OUT = Path("reports/v2/diagnostics.md")
 WINDOWS = ("holdout", "official", "seen_backtest")
 MODELS = {"lgbm_A_2021": "A_2021", "lgbm_C_2021": "C", "lgbm_B_2021": "B_2021", "lgbm_B_expanding": "B_2003"}
 DAY1_MAX_EST_HOUR = 6        # EST hours 0-6 use previous_day1, 7-23 previous_day2 (spec-v2 section 3)
+FOCUS_DAYS = (date(2026, 10, 19),)   # the one day the first run added to v1's IESO window
 
 
 def pick_cache(arg: str | None) -> Path:
@@ -153,11 +154,11 @@ def main() -> int:
         table(day_completeness(days["official"][-5:], obs, fc))
 
     if "official" in preds:
-        section("2. Official window - daily MAE, last seven days",
+        section("2. Official window - daily MAE, last seven days and 2026-10-19",
                 "If B collapses only on days with incomplete observed weather, the v1-v2 gap is a data-timing "
-                "artefact, not a model change.")
+                "artefact, not a model change. 2026-10-19 was the last day of the first run's window.")
         p = preds["official"]
-        last = days["official"][-7:]
+        last = sorted(set(days["official"][-7:]) | {d for d in FOCUS_DAYS if d in days["official"]})
         daily = mae_wide(p.filter(pl.col("delivery_date").is_in(last)), "delivery_date")
         comp = day_completeness(last, obs, fc).select("delivery_date", "obs_hours")
         table(daily.join(comp, on="delivery_date", how="left").sort("delivery_date"))

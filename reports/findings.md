@@ -7,9 +7,9 @@
 
 Every v2 number comes from [`v2/findings_auto.md`](v2/findings_auto.md) or the tables
 beside it in `v2/results/` — machine output of `src/evaluate/run_v2.py` — cited as
-*(v2 auto §n)*. The exceptions are marked **post hoc**: they come from
-[`v2/diagnostics.md`](v2/diagnostics.md), checks written after the results were seen,
-which were not pre-registered and are not evidence for any v2 conclusion.
+*(v2 auto §n)*. Anything marked **post hoc** was written after the results were seen,
+was not pre-registered, and is not evidence for any v2 conclusion; from the next rerun
+on, those checks come from `scripts/diagnose_v2.py`, which writes `v2/diagnostics.md`.
 
 ---
 
@@ -114,9 +114,22 @@ upper bound recovered" is meaningless and the report declines to give it. The
 pre-registered family has no test of C against B, so on the pre-registered evidence
 this is unexplained.
 
-**Post-hoc check, pending.** `scripts/diagnose_v2.py` asks whether this gap survives a
-Diebold-Mariano test, and whether it sits on days with gaps in the observed weather.
-Its result will replace this paragraph.
+**Unresolved.** The post-hoc check meant to settle it needed the run's own predictions,
+and those were lost when the Colab session closed. Three explanations stay open:
+
+1. **Noise.** No pre-registered test compares C with B.
+2. **Gaps in the observed series.** A station-month that fails to download is not fatal:
+   that city silently drops out of the three-city average for the month, and the
+   average shifts (Ottawa runs colder). The first run did not report observed coverage
+   by month, so this cannot be ruled out.
+3. **A better temperature, not a worse one** — *hypothesis, not tested*. A gridded model
+   temperature may track the temperature that drives load better than three airport
+   thermometers do.
+
+Since this run the code reports observed coverage by city and month, retries failed
+downloads, and runs the diagnostic automatically at the end of every run
+(spec-v2 §7.2). The next rerun can therefore tell (2) apart from the others and give an
+exploratory test of (1).
 
 The sign is not uniform *(v2 results, by temperature band)*: on the holdout's hottest
 5% of days observed temperature does win (B_2021 822 against C 883 MW), as an upper
@@ -230,7 +243,7 @@ have to be pre-registered for v3.
 | **IESO day-ahead forecast** | **470** | −176 |
 | Ensemble C | 621 | +37 |
 | LightGBM C | 630 | +41 |
-| LightGBM B, observed temperature (upper bound) | 644 | +68 |
+| LightGBM B, observed temperature (upper bound; see §I) | 644 | +68 |
 | LightGBM A (v1's model) | 866 | +60 |
 | Naive, legal | 1,053 | +43 |
 
@@ -253,34 +266,53 @@ Holm p 0.054.
 moved by a few MW (legal naive 1,056 → 1,053, LightGBM A 868 → 866; IESO 470 both
 times). LightGBM B did not: 613 → 644.
 
-**Post-hoc check, pending.** If B's other 127 days were unchanged, its error on
-2026-10-19 alone would have to be about 4,600 MW. The suspected cause is that the
-observed weather for that day was not yet complete when the run fetched it, so B got
-missing inputs for a day it then forecast; `scripts/diagnose_v2.py` checks this, and
-its result will replace this paragraph. Track C uses forecasts, which exist ahead of
-time, so it cannot be affected in the same way.
+**Unresolved**, for the same reason as in §C. If B's other 127 days were unchanged, its
+error on 2026-10-19 alone would have to be about 4,600 MW. There are two candidate causes,
+and neither is confirmed:
+
+- **That day's observed weather was not yet fully published** when the run fetched it. On
+  synthetic data, withholding part or all of a day's observations raised B's error on
+  that day by 48–106 MW, not thousands, so this alone looks unlikely — though synthetic
+  data is a weak guide.
+- **A station-month failed to download in this run**, which would shift B's inputs over
+  many days rather than one.
+
+Both are now guarded or reported (spec-v2 §7.2): B is not scored on days whose observed
+weather is not fully published, and the report lists every evaluated month where a city
+falls short. Track C uses forecasts, which exist ahead of time, and is not exposed to
+either problem.
 
 ## J. Deviations from spec-v2, and limits
 
 1. **B_2021 was not run on the seen backtest.** Spec-v2 §7.1 dropped only the 2003-window
    Track B there; the code skipped both. It affects a seen window only — the Track C
-   table has no backtest row — and will be fixed with the next code change.
-2. **Track C trains from April 2021**, not March as the spec expected; the start is set
+   table has no backtest row. Fixed after this run (spec-v2 §7.2); it appears from the
+   next rerun.
+2. **Observed-weather problems were invisible.** A failed download or an unpublished
+   day reaches Track B silently. After this run, B skips days not yet fully observed and
+   the report lists observed coverage by city and month (spec-v2 §7.2). These changes
+   leave every existing holdout, development and backtest prediction unchanged — checked by
+   running the pipeline on synthetic data before and after — and, because the change was
+   committed on 2026-10-20 before any 2026-10-21 data existed, they leave the freeze date
+   and the prospective window where they were.
+3. **Track C trains from April 2021**, not March as the spec expected; the start is set
    by the rule (first month with ≥ 95% coverage), not by hand.
-3. **The run took 96 minutes**, above the 60–80 the spec estimated.
-4. **The holdout has no full summer and no IESO forecasts.** A clean summer test needs the
+4. **The run took 96 minutes**, above the 60–80 the spec estimated.
+5. **The holdout has no full summer and no IESO forecasts.** A clean summer test needs the
    prospective window to reach summer 2027.
-5. **The forecast-run mapping was verified on five dates in 2026 only** (§C).
-6. **Temperature only.** No humidity, cloud cover or wind, and the same equal-weight three
+6. **The forecast-run mapping was verified on five dates in 2026 only** (§C).
+7. **Temperature only.** No humidity, cloud cover or wind, and the same equal-weight three
    airports as v1.
-7. **The quantile intervals are not calibrated** (§G).
-8. **Post-hoc checks** in `v2/diagnostics.md` were written after seeing the results.
+8. **The quantile intervals are not calibrated** (§G).
+9. **Post-hoc checks** (`scripts/diagnose_v2.py`) were written after seeing the results
+   and have not yet run on real data: the first attempt needed the closed Colab session.
 
 ## K. Next
 
 1. **Rerun the notebook every month or so.** That fills the prospective window — the
-   clean test against IESO, including this coming winter. Reruns count only while the code
-   is untouched; the report prints the freeze date it used.
+   clean test against IESO, including this coming winter — and runs the post-hoc checks
+   on the two open questions in §C and §I. Reruns count only while the code is
+   untouched; the report prints the freeze date it used.
 2. **v3 candidates**, each to be pre-registered before it is built: calibrated intervals;
    the fresher legal GFS run for hours 7–23; humidity and cloud cover; load-weighted
    temperature; yesterday's forecast error as a feature.

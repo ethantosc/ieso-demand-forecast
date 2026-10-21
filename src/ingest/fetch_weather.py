@@ -39,7 +39,7 @@ import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import polars as pl
@@ -51,7 +51,7 @@ URL = ("https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv"
        "&stationID={sid}&Year={y}&Month={m}&Day=14&timeframe=1&submit=Download+Data")
 USER_AGENT = "ieso-demand-forecast/1.0 (personal research project)"
 WORKERS = 4
-RETRIES = 2
+RETRIES = 4
 TIMEOUT = 30
 MIN_CITY_COVERAGE = 0.90   # a city below this over the span is dropped, not averaged in
 PROBE = (51459, 2024, 1)   # one known station-month, fetched first
@@ -125,13 +125,38 @@ def fetch(today: date | None = None) -> dict[str, int]:
         print(f"WARNING: ECCC unreachable ({probe}); using {cached} cached files", file=sys.stderr)
         return {"cached": cached, "unreachable": 1}
     counts: dict[str, int] = {}
+    failed = []
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        for i, status in enumerate(pool.map(_download, jobs), start=1):
+        for i, (job, status) in enumerate(zip(jobs, pool.map(_download, jobs)), start=1):
             key = status.split(":")[0]
             counts[key] = counts.get(key, 0) + 1
+            if key == "failed":
+                failed.append(f"{job[0]}_{job[1]}_{job[2]:02d}")
             if i % 100 == 0 or i == len(jobs):
                 print(f"  weather files {i}/{len(jobs)}", flush=True)
+    # A failed station-month is not fatal, but it is not harmless either: that city
+    # drops out of the average for the month and the mean shifts (Ottawa runs colder).
+    if failed:
+        print(f"WARNING: {len(failed)} weather file(s) failed to download: {', '.join(failed[:12])}"
+              + (" ..." if len(failed) > 12 else ""), file=sys.stderr)
     return counts
+
+
+def complete_through(hourly: pl.DataFrame | None):
+    """Last EST day whose final hour (23:00) has an observed temperature.
+
+    Observations are published hour by hour, so every earlier day is as complete
+    as it will get, while later days may still be filling in. Track B is an upper
+    bound only when it sees the whole observed day, so it is not scored after
+    this day (spec-v2 section 7.2). None if there is no observation at all.
+    """
+    if hourly is None:
+        return None
+    have = hourly.filter(pl.col("temp").is_not_null())
+    if have.is_empty():
+        return None
+    last = have["ts_est"].max()
+    return last.date() if last.hour == 23 else last.date() - timedelta(days=1)
 
 
 def parse_file(path: Path, city_token: str) -> pl.DataFrame | None:

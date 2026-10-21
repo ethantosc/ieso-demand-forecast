@@ -146,16 +146,19 @@ def load_inputs(use_weather: bool) -> dict:
     staging = pl.read_parquet(STAGING)
     excluded = eda.exclusion_dates(eda.blackout_window(eda.load()))
 
-    weather_obs, obs_status = None, "not requested"
+    from src.ingest import fetch_weather
+
+    weather_obs, weather_cities, obs_status = None, None, "not requested"
     if use_weather:
         try:
-            from src.ingest import fetch_weather
             if fetch_weather.main() != 0 or not WEATHER.exists():
                 raise RuntimeError("fetch_weather failed")
-            weather_obs = pl.read_parquet(WEATHER).select("ts_est", "temp")
+            weather_cities = pl.read_parquet(WEATHER)
+            weather_obs = weather_cities.select("ts_est", "temp")
             obs_status = "available"
         except Exception as error:
             obs_status = f"unavailable - {type(error).__name__}: {error}"
+    obs_through = fetch_weather.complete_through(weather_obs)
 
     weather_fc, fc_meta, fc_start, fc_status = None, {}, None, "not requested"
     if use_weather:
@@ -184,6 +187,7 @@ def load_inputs(use_weather: bool) -> dict:
         "frames_target": {t: F.build(staging, excluded, target=t) for t in ("ontario", "exports")},
         "obs_status": obs_status, "fc_status": fc_status, "fc_meta": fc_meta, "fc_start": fc_start,
         "has_obs": weather_obs is not None, "has_fc": weather_fc is not None,
+        "obs_through": obs_through, "weather_cities": weather_cities,
         "temp_daily": temp_daily, "official": official_io.load(),
     }
 
@@ -213,17 +217,23 @@ def point_models(window: str, days: list[date], inp: dict, cache: Cache, n_jobs:
     if inp["has_fc"]:
         runs["lgbm_C_2021"] = lambda: lgbm.forecast(fc, days, "C", "since", n_jobs, train_start=start,
                                                      min_train_days=365)[0]
+    through = inp["obs_through"]
+    b_days = [d for d in days if through is not None and d <= through]
     if not dev:
         if inp["has_fc"]:
             runs["lgbm_A_2021"] = lambda: lgbm.forecast(fr, days, "A", "since", n_jobs, train_start=start,
                                                          min_train_days=365)[0]
-        if inp["has_obs"] and window != "seen_backtest":       # v1 already reports it there
-            runs["lgbm_B_expanding"] = lambda: lgbm.forecast(fr, days, "B", "expanding", n_jobs)[0]
-            if inp["has_fc"]:
-                runs["lgbm_B_2021"] = lambda: lgbm.forecast(fr, days, "B", "since", n_jobs, train_start=start,
+        # Track B is an upper bound only with the whole observed day, so it skips days whose
+        # observations are not fully published yet (spec-v2 s.7.2). Those hours then drop out
+        # of the window's common sample for every model, and come back on the next rerun.
+        if inp["has_obs"] and b_days:
+            if window != "seen_backtest":       # v1 already reports the 2003-window B there (s.7.1)
+                runs["lgbm_B_expanding"] = lambda: lgbm.forecast(fr, b_days, "B", "expanding", n_jobs)[0]
+            if inp["has_fc"]:                   # the Track C control runs everywhere (s.7.1)
+                runs["lgbm_B_2021"] = lambda: lgbm.forecast(fr, b_days, "B", "since", n_jobs, train_start=start,
                                                              min_train_days=365)[0]
-    parts = [cache.get_or_run(window, days, "market", name, run).with_columns(pl.lit(name).alias("model"))
-             for name, run in runs.items()]
+    parts = [cache.get_or_run(window, b_days if name.startswith("lgbm_B") else days, "market", name, run)
+             .with_columns(pl.lit(name).alias("model")) for name, run in runs.items()]
     which = ("mstl_ets",) if dev else ("mstl_ets", "mstl_arima")
     for name in which:
         out = cache.get_or_run(window, days, "market", name,
@@ -320,6 +330,28 @@ def evaluate(scored: pl.DataFrame, threshold: str, best_op: str | None, with_ies
         out["by"] = {dim: metrics.summary(main, [dim]) for dim in ("hour_ending", "local_hour", "season", "day_type", "temp_band")
                      if main[dim].null_count() < main.height}
     return out
+
+
+def observed_coverage(inp: dict, eval_days: list[date]) -> pl.DataFrame | None:
+    """Per city and month, the share of evaluated hours with an observed temperature.
+
+    Only months where some city is below 100% are returned. Hours after the last
+    complete observed day are left out: they are missing because they are not
+    published yet, which the report states separately.
+    """
+    cities = inp.get("weather_cities")
+    if cities is None or not eval_days:
+        return None
+    through = inp.get("obs_through")
+    keep = [d for d in eval_days if through is None or d <= through]
+    names = [c for c in ("toronto", "ottawa", "london") if c in cities.columns]
+    grid = (inp["frame_obs"].filter(pl.col("delivery_date").is_in(keep)).select("ts_est", "delivery_date")
+            .join(cities.select("ts_est", *names).with_columns(pl.col("ts_est").cast(inp["frame_obs"].schema["ts_est"])),
+                  on="ts_est", how="left"))
+    out = (grid.with_columns(pl.col("delivery_date").dt.strftime("%Y-%m").alias("month"))
+           .group_by("month").agg([pl.col(c).is_not_null().mean().round(3).alias(c) for c in names])
+           .sort("month"))
+    return out.filter(pl.any_horizontal([pl.col(c) < 1 for c in names]))
 
 
 def mae_of(summary: pl.DataFrame, model: str) -> float | None:
@@ -538,7 +570,9 @@ def main() -> int:
         + ", ".join(f"{LABELS[r['model']]} {r['MAE']:,.0f}" for r in simple.iter_rows(named=True)),
         "- Ensemble weights (fitted on dev, w = LightGBM share): "
         + ("; ".join(f"{k}: {v[1]}" for k, v in weights.items()) or "none"),
-        f"- Observed weather: {inp['obs_status']}",
+        f"- Observed weather: {inp['obs_status']}"
+        + (f"; complete through **{inp['obs_through']}** (Track B is not scored after that day)"
+           if inp["obs_through"] else ""),
         f"- Forecast weather: {inp['fc_status']}",
         f"- Forecast archive first full month: {meta.get('first_full_month', 'n/a')} "
         f"(Track C and its controls train from {inp['fc_start'] or 'n/a'})",
@@ -713,6 +747,15 @@ def main() -> int:
             rep.table(ladder_table(f))
             rep.table(dm_table(f))
 
+    obs_cov = observed_coverage(inp, sorted({d for v in days.values() for d in v} | set(od)))
+    if obs_cov is not None:
+        rep.h("Observed-weather coverage in evaluated months (share of hours with a value)")
+        if obs_cov.height:
+            rep.p("Only months where a city falls short are listed. A missing city drops out of the "
+                  "average, which shifts it (Ottawa runs colder), so Track B sees a biased temperature there.\n")
+            rep.table(obs_cov)
+        else:
+            rep.p("All three cities have a value for every hour of every evaluated month.")
     if WEATHER_FC_COVERAGE.exists():
         cov = pl.read_csv(WEATHER_FC_COVERAGE).with_columns(pl.col("month").str.slice(0, 4).alias("year"))
         rep.h("Forecast-weather coverage (share of hours with a value)")

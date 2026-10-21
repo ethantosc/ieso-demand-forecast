@@ -76,3 +76,46 @@ def test_quantile_forecasts_are_ordered(make_staging):
     assert q.height == 3 * 24 * 3
     ordered = q.sort("ts_est", "q").group_by("ts_est").agg(pl.col("yhat"))
     assert all(v == sorted(v) for v in ordered["yhat"].to_list())
+
+
+def test_observed_weather_complete_through():
+    from src.ingest.fetch_weather import complete_through
+
+    hours = [datetime(2026, 10, 17) + timedelta(hours=i) for i in range(24 * 2 + 11)]   # up to 10-19 10:00
+    w = pl.DataFrame({"ts_est": hours, "temp": [5.0] * len(hours)})
+    assert complete_through(w) == date(2026, 10, 18)                       # 10-19 is still filling in
+    assert complete_through(w.filter(pl.col("ts_est") < datetime(2026, 10, 19))) == date(2026, 10, 18)
+    assert complete_through(w.with_columns(pl.lit(None, dtype=pl.Float64).alias("temp"))) is None
+    assert complete_through(None) is None
+
+
+def test_track_b_runs_only_on_fully_observed_days(monkeypatch, make_staging):
+    """B skips days not yet fully observed; its Track C control runs on the seen backtest too."""
+    from src.evaluate import run_v2
+
+    calls = {}
+
+    def fake_forecast(frame, days, track, window, n_jobs=-1, **kwargs):
+        calls[(track, window)] = list(days)
+        return pl.DataFrame(schema={"ts_est": frame.schema["ts_est"], "yhat": pl.Float64}), None
+
+    monkeypatch.setattr(run_v2.lgbm, "forecast", fake_forecast)
+    monkeypatch.setattr(run_v2.baselines, "classical", lambda *args, **kwargs: {})
+    frame = F.build(make_staging(days=40))
+    days = [date(2025, 3, 1) + timedelta(d) for d in range(5)]
+    inp = {"frame_obs": frame, "frame_fc": frame, "fc_start": date(2025, 2, 1),
+           "has_fc": True, "has_obs": True, "obs_through": date(2025, 3, 3)}
+    cache = run_v2.Cache(enabled=False, quick=True)
+
+    run_v2.point_models("holdout", days, inp, cache, 1)
+    assert calls[("B", "since")] == days[:3] and calls[("B", "expanding")] == days[:3]
+    assert calls[("C", "since")] == days and calls[("A", "since")] == days
+
+    calls.clear()
+    run_v2.point_models("seen_backtest", days, inp, cache, 1)
+    assert calls[("B", "since")] == days[:3]
+    assert ("B", "expanding") not in calls
+
+    calls.clear()
+    run_v2.point_models("holdout", days, {**inp, "obs_through": None}, cache, 1)
+    assert not any(track == "B" for track, _ in calls)

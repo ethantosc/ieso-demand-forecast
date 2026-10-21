@@ -134,7 +134,7 @@ In Google Colab, no local install needed. Open each notebook from GitHub
 | `notebooks/00_ingest_colab.ipynb` | download IESO demand, build and validate the Parquet | ~2 min |
 | `notebooks/01_eda.ipynb` | Milestone 2 analysis | ~3 min |
 | `notebooks/02_results.ipynb` | tests, full backtest, official comparison, report | ~35 min |
-| `notebooks/03_v2.ipynb` | v2: forecast-weather verification, holdout, ensembles, exports, quantiles | ~95 min |
+| `notebooks/03_v2.ipynb` | v2: forecast-weather verification, holdout, ensembles, exports, quantiles | ~100 min |
 
 Locally, with Python 3.12+ and `pip install -r requirements.txt`:
 
