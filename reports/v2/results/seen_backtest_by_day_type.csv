@@ -1,7 +1,8 @@
 model,day_type,n_hours,MAE,RMSE,MAPE,ME
 lgbm_A_expanding,holiday,432,797.3,1035.4,4.48,-169.5
-ens_C_global,holiday,432,816.1,1051.3,4.54,345.4
 ens_C_seasonal,holiday,432,816.1,1051.3,4.54,345.4
+ens_C_global,holiday,432,816.1,1051.3,4.54,345.4
+lgbm_B_2021,holiday,432,822.4,1055.5,4.54,308.1
 lgbm_C_2021,holiday,432,825.5,1059.0,4.59,265.5
 ens_A_global,holiday,432,842.6,1093.6,4.76,80.8
 ens_A_seasonal,holiday,432,845.3,1097.6,4.78,91.3
@@ -10,8 +11,9 @@ naive,holiday,432,1101.6,1363.2,6.15,179.4
 mstl_arima,holiday,432,1237.0,1562.3,7.02,733.3
 mstl_ets,holiday,432,1245.6,1564.0,7.06,664.8
 seasonal_naive,holiday,432,1584.1,2053.8,9.15,1217.2
-ens_C_global,weekday,12118,674.0,867.0,3.59,-27.1
+lgbm_B_2021,weekday,12118,651.7,829.2,3.48,-22.3
 ens_C_seasonal,weekday,12118,674.0,867.0,3.59,-27.1
+ens_C_global,weekday,12118,674.0,867.0,3.59,-27.1
 lgbm_C_2021,weekday,12118,697.0,896.6,3.71,-28.5
 ens_A_seasonal,weekday,12118,774.6,1008.3,4.11,41.9
 ens_A_global,weekday,12118,777.6,1012.1,4.13,44.7
@@ -21,6 +23,7 @@ mstl_ets,weekday,12118,875.9,1131.4,4.66,-21.5
 lgbm_A_2021,weekday,12118,892.8,1156.2,4.73,21.5
 naive,weekday,12118,998.1,1323.5,5.25,-257.2
 seasonal_naive,weekday,12118,1305.2,1697.6,6.87,-75.2
+lgbm_B_2021,weekend,4992,617.5,789.7,3.48,21.8
 ens_C_seasonal,weekend,4992,634.6,810.8,3.56,10.8
 ens_C_global,weekend,4992,634.6,810.8,3.56,10.8
 lgbm_C_2021,weekend,4992,662.3,840.8,3.71,18.1
