@@ -2,14 +2,15 @@
 
 | | Results from | Code | Plan |
 |---|---|---|---|
-| **v2** — Part I | run of 2026-10-21 03:08 UTC | commit `ab9d3b7` | [`docs/spec-v2.md`](../docs/spec-v2.md), pre-registered |
+| **v2** — Part I | run of 2026-10-22 02:54 UTC (second run; §I) | commit `2c46783`, model code as of `9fc6ccc` | [`docs/spec-v2.md`](../docs/spec-v2.md), pre-registered |
 | **v1** — Part II, final and unchanged | run of 2026-10-20 05:02 UTC | commit `5011a08` | [`docs/spec.md`](../docs/spec.md) |
 
 Every v2 number comes from [`v2/findings_auto.md`](v2/findings_auto.md) or the tables
 beside it in `v2/results/` — machine output of `src/evaluate/run_v2.py` — cited as
 *(v2 auto §n)*. Anything marked **post hoc** was written after the results were seen,
-was not pre-registered, and is not evidence for any v2 conclusion; from the next rerun
-on, those checks come from `scripts/diagnose_v2.py`, which writes `v2/diagnostics.md`.
+was not pre-registered, and is not evidence for any v2 conclusion. Those numbers come
+from [`v2/diagnostics.md`](v2/diagnostics.md), written by `scripts/diagnose_v2.py`, and
+are cited as *(post hoc §n)*.
 
 ---
 
@@ -31,7 +32,7 @@ and was committed before any v2 model code existed:
   far. Each rerun of the notebook adds the days since; any later change to model code
   moves the freeze date and empties it again.
 - **Seen windows** — the 2024–25 backtest and the IESO window (2026-06-14 to
-  2026-10-19) — reported for comparison with v1, not as evidence.
+  2026-10-20) — reported for comparison with v1, not as evidence.
 
 A gap counts only when its Diebold-Mariano p-value, Holm-corrected within the window's
 pre-declared family of tests, is below 0.05. The holdout's limits were written down in
@@ -44,7 +45,8 @@ archive starts 2026-06-14).
    archived GFS temperature forecasts — using only model runs published before the
    12:30 origin — scores **659 MW** on the holdout, against 856 MW for the same model
    without weather trained over the same years: **197 MW, Holm p < 0.0001**
-   *(v2 auto §1, §3)*.
+   *(v2 auto §1, §3)*. That is 98% of what perfect knowledge of the observed temperature
+   is worth on the holdout, and 80% over the two seen years (§C).
 2. **The best operational model is Ensemble C** (0.8 × LightGBM C + 0.2 × MSTL + ETS):
    654 MW, 36.5% below the threshold's 1,030 MW. Its step over LightGBM C alone,
    4.6 MW a day, is **not significant** (Holm p 0.54).
@@ -64,10 +66,10 @@ archive starts 2026-06-14).
    loss (226 against 320), but its 90% interval contains only 67% of outcomes and its
    50% interval 30%. The baseline is close to nominal (89% and 46%) with a 90% interval
    2.4 times as wide *(v2 auto §5)*.
-7. **IESO is still ahead**, on the seen window only: 470 MW against 621 MW for
-   Ensemble C (Holm p < 0.0001). LightGBM A, v1's best real forecast, scores 866 MW
-   there.
-   A clean comparison has to come from the prospective window.
+7. **IESO is still ahead**, on the seen window only: 468 MW against 618 MW for
+   Ensemble C (Holm p < 0.0001), and ahead even of the perfect-weather upper bound
+   (599). LightGBM A, v1's best real forecast, scores 861 MW there. A clean comparison
+   has to come from the prospective window.
 
 ## C. Track C — what forecast weather is worth
 
@@ -96,45 +98,49 @@ holdout is complete *(v2 auto, coverage table)*.
 **Three quantities**, each against a control trained over the same years so that the
 training window is not mixed in *(v2 auto §3)*:
 
-| MAE (MW) | Holdout (clean) | IESO window (seen) |
-|---|---|---|
-| A_2021 — no weather | 856 | 861 |
-| **C — GFS forecast temperature** | **659** | **630** |
-| B_2021 — observed temperature, the "upper bound" | 676 | 646 |
-| Value of forecast weather, A − C | 197 (Holm p < 0.0001) | 231 (Holm p 0.0044) |
-| Cost of forecast error, C − B | −17 | −16 |
+| MAE (MW) | Holdout (clean) | IESO window (seen) | 2024–25 backtest (seen) |
+|---|---|---|---|
+| A_2021 — no weather | 856 | 856 | 862 |
+| **C — GFS forecast temperature** | **659** | **627** | **690** |
+| B_2021 — observed temperature, the upper bound | 654 | 599 | 646 |
+| Value of forecast weather, A − C | 197 (Holm p < 0.0001) | 230 (Holm p 0.0043) | 171 (Holm p < 0.0001) |
+| Cost of forecast error, C − B | 5 | 28 | 44 |
+| Share of the perfect-weather gain recovered | 98% | 89% | 80% |
 
-The value of forecast weather is large in every window, and 171 MW a day in the 2024–25
-backtest as well *(v2 auto §8)*.
+**Forecast temperature gets close to perfect temperature.** On the clean holdout the
+difference is 5 MW a day and indistinguishable from noise (exploratory Diebold-Mariano
+p 0.69); in the IESO window it is 28 MW (p 0.11); over the two seen years it is 44 MW and
+clearly real (p < 0.0001) *(post hoc §5)*. These tests are not in the pre-registered
+family.
 
-**The cost is negative, which should not happen.** Observed temperature is meant to be
-an upper bound: knowing tomorrow's weather exactly should beat a two-day-old forecast
-of it. Here the forecast won, by 16–17 MW, in both windows, so the spec's "share of the
-upper bound recovered" is meaningless and the report declines to give it. The
-pre-registered family has no test of C against B, so on the pre-registered evidence
-this is unexplained.
+**The cost sits in summer.** Over the seen backtest, the months where observed
+temperature beats the forecast by most are June to August 2025 (94–108 MW); in spring the
+two are level (2024-05: the forecast is ahead by 38 MW) *(post hoc §6)*. The holdout,
+with only 13 June days, therefore flatters the forecast: its 98% is a winter-and-spring
+figure. On its 9 hottest days the cost is 67 MW (C 940, B 873) *(v2 results, by
+temperature band)*.
 
-**Unresolved.** The post-hoc check meant to settle it needed the run's own predictions,
-and those were lost when the Colab session closed. Three explanations stay open:
+**How wrong were the forecasts?** Against the station observations, the GFS city-mean
+temperature was off by 1.4–1.6 °C on average over the holdout and ran 0.9 °C cold; over
+the backtest, 1.2–1.3 °C and 0.4–0.5 °C cold. The day-old forecasts (EST hours 0–6) were
+barely better than the two-day-old ones *(post hoc §4)*.
 
-1. **Noise.** No pre-registered test compares C with B.
-2. **Gaps in the observed series.** A station-month that fails to download is not fatal:
-   that city silently drops out of the three-city average for the month, and the
-   average shifts (Ottawa runs colder). The first run did not report observed coverage
-   by month, so this cannot be ruled out.
-3. **A better temperature, not a worse one** — *hypothesis, not tested*. A gridded model
-   temperature may track the temperature that drives load better than three airport
-   thermometers do.
+**Where the archive has holes, C is worse than no weather.** In January 2024, with 456
+of the month's forecast hours missing, C scored 943 MW against 864 for A_2021
+*(post hoc §6)*.
 
-Since this run the code reports observed coverage by city and month, retries failed
-downloads, and runs the diagnostic automatically at the end of every run
-(spec-v2 §7.2). The next rerun can therefore tell (2) apart from the others and give an
-exploratory test of (1).
-
-The sign is not uniform *(v2 results, by temperature band)*: on the holdout's hottest
-5% of days observed temperature does win (B_2021 822 against C 883 MW), as an upper
-bound should; on the coldest 5% the forecast wins by a wide margin (700 against 836),
-and on ordinary days by 15 MW.
+**A correction to the first run.** The first v2 run (2026-10-21, commit `ab9d3b7`) found
+C *better* than B on the holdout (659 against 676) — impossible for an upper bound. The
+second run, with the same model code, put B at 654. Only Track B changed: every model
+that does not read observed weather produced identical holdout and backtest numbers
+in both runs. The observed temperatures themselves differed — the holdout's hottest-5%
+day set changed between the runs, which only the observed series can do. The first run
+neither reported observed coverage nor named failed downloads, so the cause cannot be
+pinned down; a station-month that silently failed to download is the most likely
+explanation. The code now names failed downloads, retries them, and reports coverage by
+city and month (spec-v2 §7.2). In the second run no evaluated month has a city below
+99.3% *(v2 auto, observed-weather coverage)*. The second run's numbers replace the first
+run's throughout this document.
 
 ## D. Where the errors went
 
@@ -155,7 +161,7 @@ LightGBM C 755 MW in summer against 1,009 for MSTL + ETS and 1,032 for LightGBM 
 *(v2 auto §4)*.
 
 **Extreme-temperature days** — the hottest and coldest 5% of holdout days, 9 days each,
-too few to stand alone. Hottest: LightGBM A 1,694, MSTL + ETS 1,468, LightGBM C 883 MW.
+too few to stand alone. Hottest: LightGBM A 1,709, MSTL + ETS 1,374, LightGBM C 940 MW.
 Coldest: LightGBM A 1,037 — the worst of all models on those days, naive included —
 MSTL + ARIMA 802, LightGBM C 700.
 
@@ -236,20 +242,22 @@ have to be pre-registered for v3.
 
 ## H. Against IESO — seen window only
 
-128 delivery days, 2026-06-14 to 2026-10-19 *(v2 auto §8)*.
+129 delivery days, 2026-06-14 to 2026-10-20 *(v2 auto §8)*.
 
 | | MAE (MW) | ME (MW) |
 |---|---|---|
-| **IESO day-ahead forecast** | **470** | −176 |
-| Ensemble C | 621 | +37 |
-| LightGBM C | 630 | +41 |
-| LightGBM B, observed temperature (upper bound; see §I) | 644 | +68 |
-| LightGBM A (v1's model) | 866 | +60 |
-| Naive, legal | 1,053 | +43 |
+| **IESO day-ahead forecast** | **468** | −175 |
+| *LightGBM B_2021, observed temperature (upper bound)* | *599* | *+59* |
+| Ensemble C | 618 | +38 |
+| LightGBM C | 627 | +41 |
+| LightGBM A (v1's model) | 861 | +59 |
+| Naive, legal | 1,047 | +42 |
 
-IESO is ahead of Ensemble C by 152 MW a day (Holm p < 0.0001). In v1 the gap to the best
-real forecast was about 400 MW; forecast temperature closed most of it. IESO also still
-under-forecasts this window by 176 MW on average, while ours is close to unbiased.
+IESO is ahead of Ensemble C by 150 MW a day (Holm p < 0.0001). In v1 the gap to the best
+real forecast was about 400 MW; forecast temperature closed most of it. As in v1, IESO is
+ahead even of perfect temperature, by about 130 MW, so its edge is more than its weather
+forecasts. It also still under-forecasts this window by 175 MW on average, while ours is
+close to unbiased.
 
 This window is not evidence. v1 scored it, and v1's results shaped v2. The clean version
 of this comparison is the prospective window, which needs reruns to fill — and a winter.
@@ -262,57 +270,43 @@ legal naive 995, seasonal naive 1,275, MSTL + ETS 874, MSTL + ARIMA 834, LightGB
 The gap v1 left untested — LightGBM A against MSTL + ARIMA — is now tested: 33 MW a day,
 Holm p 0.054.
 
-**The IESO window, almost.** It has one more day than in v1 (2026-10-19). Most models
-moved by a few MW (legal naive 1,056 → 1,053, LightGBM A 868 → 866; IESO 470 both
-times). LightGBM B did not: 613 → 644.
-
-**Unresolved**, for the same reason as in §C. If B's other 127 days were unchanged, its
-error on 2026-10-19 alone would have to be about 4,600 MW. There are two candidate causes,
-and neither is confirmed:
-
-- **That day's observed weather was not yet fully published** when the run fetched it. On
-  synthetic data, withholding part or all of a day's observations raised B's error on
-  that day by 48–106 MW, not thousands, so this alone looks unlikely — though synthetic
-  data is a weak guide.
-- **A station-month failed to download in this run**, which would shift B's inputs over
-  many days rather than one.
-
-Both are now guarded or reported (spec-v2 §7.2): B is not scored on days whose observed
-weather is not fully published, and the report lists every evaluated month where a city
-falls short. Track C uses forecasts, which exist ahead of time, and is not exposed to
-either problem.
+**The IESO window, too.** It now runs two days past v1's (to 2026-10-20), and the models
+moved by a few MW (legal naive 1,056 → 1,047, LightGBM A 868 → 861, IESO 470 → 468).
+LightGBM B with the 2003 window, v1's Track B, scores 611 against v1's 613. The 644 the
+first v2 run reported came from that run's observed weather (§C), not from the extra
+day: in the second run, 2026-10-19 is an ordinary day for B (422–449 MW)
+*(post hoc §2)*.
 
 ## J. Deviations from spec-v2, and limits
 
-1. **B_2021 was not run on the seen backtest.** Spec-v2 §7.1 dropped only the 2003-window
-   Track B there; the code skipped both. It affects a seen window only — the Track C
-   table has no backtest row. Fixed after this run (spec-v2 §7.2); it appears from the
-   next rerun.
-2. **Observed-weather problems were invisible.** A failed download or an unpublished
-   day reaches Track B silently. After this run, B skips days not yet fully observed and
-   the report lists observed coverage by city and month (spec-v2 §7.2). These changes
-   leave every existing holdout, development and backtest prediction unchanged — checked by
-   running the pipeline on synthetic data before and after — and, because the change was
-   committed on 2026-10-20 before any 2026-10-21 data existed, they leave the freeze date
-   and the prospective window where they were.
+1. **In the first run, B_2021 was not run on the seen backtest.** Spec-v2 §7.1 dropped
+   only the 2003-window Track B there; the code skipped both. Fixed (spec-v2 §7.2); the
+   second run includes it.
+2. **In the first run, observed-weather problems were invisible**, and its Track B
+   numbers were wrong (§C). Since then B skips days not yet fully observed, failed
+   downloads are named and retried, and the report lists observed coverage by city and
+   month (spec-v2 §7.2). The fix changed no other model: on synthetic data before and
+   after, and between the two real runs, every prediction that does not use observed
+   weather is identical. It was committed on 2026-10-20, before any 2026-10-21 data
+   existed, so the freeze date and the prospective window did not move.
 3. **Track C trains from April 2021**, not March as the spec expected; the start is set
    by the rule (first month with ≥ 95% coverage), not by hand.
-4. **The run took 96 minutes**, above the 60–80 the spec estimated.
+4. **A run takes about 97 minutes**, above the 60–80 the spec estimated.
 5. **The holdout has no full summer and no IESO forecasts.** A clean summer test needs the
    prospective window to reach summer 2027.
 6. **The forecast-run mapping was verified on five dates in 2026 only** (§C).
 7. **Temperature only.** No humidity, cloud cover or wind, and the same equal-weight three
    airports as v1.
 8. **The quantile intervals are not calibrated** (§G).
-9. **Post-hoc checks** (`scripts/diagnose_v2.py`) were written after seeing the results
-   and have not yet run on real data: the first attempt needed the closed Colab session.
+9. **Post-hoc checks** (`v2/diagnostics.md`) were written after seeing the first run's
+   results. They explain; they do not decide.
 
 ## K. Next
 
 1. **Rerun the notebook every month or so.** That fills the prospective window — the
-   clean test against IESO, including this coming winter — and runs the post-hoc checks
-   on the two open questions in §C and §I. Reruns count only while the code is
-   untouched; the report prints the freeze date it used.
+   clean test against IESO, including this coming winter — and repeats the post-hoc
+   checks. Reruns count only while the code is untouched; the report prints the freeze
+   date it used.
 2. **v3 candidates**, each to be pre-registered before it is built: calibrated intervals;
    the fresher legal GFS run for hours 7–23; humidity and cloud cover; load-weighted
    temperature; yesterday's forecast error as a feature.

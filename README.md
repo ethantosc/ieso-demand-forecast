@@ -18,7 +18,7 @@ statsforecast, LightGBM). The plan is in [`docs/spec.md`](docs/spec.md).
 | Milestone 2 - EDA | done - [`reports/findings.md`](reports/findings.md) §3 |
 | Milestones 3-7 - backtest, ladder, LightGBM A and B, official comparison | done - run of 2026-10-20 |
 | Milestone 8 - write-up | done - [`reports/findings.md`](reports/findings.md) |
-| **v2** - weather forecasts, ensembles, exports, probabilistic | pre-registered in [`docs/spec-v2.md`](docs/spec-v2.md); first run 2026-10-21 UTC - [`reports/findings.md`](reports/findings.md) Part I |
+| **v2** - weather forecasts, ensembles, exports, probabilistic | pre-registered in [`docs/spec-v2.md`](docs/spec-v2.md); results of 2026-10-22 UTC - [`reports/findings.md`](reports/findings.md) Part I |
 | v2 prospective window | delivery days after the 2026-10-20 freeze; grows with each rerun of notebook 03 |
 
 ## The problem
@@ -73,18 +73,19 @@ flagged out of every model.
 | LightGBM A - calendar and lags only | 864 |
 | **LightGBM C - adds archived GFS temperature forecasts** | **659** |
 | **Ensemble C** - 0.8 x LightGBM C + 0.2 x MSTL + ETS | **654** |
-| *LightGBM B - observed temperature, upper bound only* | *676* |
+| *LightGBM B - observed temperature, same training years as C; upper bound only* | *654* |
 
 - Forecast weather is worth 197 MW against the same model without it (Holm-corrected
   Diebold-Mariano p < 0.0001), using only GFS runs published before the 12:30 origin -
-  a rule checked against individual model runs before use.
+  a rule checked against individual model runs before use. That is 98% of what perfect
+  temperature is worth on the holdout, 80% over 2024-25; the shortfall is in summer.
 - Without weather, LightGBM does not beat MSTL + ARIMA significantly in either window;
   with forecast weather, v1's summer weakness disappears.
 - Exports do not explain the night-time error; Ontario Demand's own error is larger at
   every hour.
 - Quantile LightGBM is sharp but overconfident: its 90% interval holds 67% of outcomes.
-- IESO is still ahead on the seen window (470 against 621 MW); the clean comparison is
-  the prospective window.
+- IESO is still ahead on the seen window (468 against 618 MW) - and ahead of the
+  perfect-weather upper bound too; the clean comparison is the prospective window.
 
 Interpretation: [`reports/findings.md`](reports/findings.md) Part I. Every number:
 [`reports/v2/findings_auto.md`](reports/v2/findings_auto.md).
